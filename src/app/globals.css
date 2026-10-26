@@ -183,6 +183,37 @@ a {
   border: 1px solid var(--border-hairline);
 }
 
+/* Section 7: Futuristic Glass Tables */
+.glass-table-shell {
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--glass-highlight), var(--shadow-panel);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.glass-table-header {
+  background-color: rgba(18, 24, 38, 0.72);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.glass-table-row {
+  transition: background-color var(--dur-button) ease, border-color var(--dur-button) ease;
+}
+
+.glass-table-row:hover {
+  background-color: rgba(34, 211, 238, 0.05);
+}
+
+.glass-table-row-selected {
+  background-color: rgba(34, 211, 238, 0.09);
+  border-left: 2px solid var(--accent-primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

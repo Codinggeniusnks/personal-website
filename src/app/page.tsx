@@ -18,6 +18,7 @@ import {
   type SpatialStage,
 } from "@/components/spatial/SpatialAiCanvas";
 import { MagneticButton } from "@/components/spatial/InteractivePrimitives";
+import { SelectedRecognitionSection } from "@/components/achievements/SelectedRecognitionSection";
 
 interface EmployerProjectSummary {
   id: ActiveProjectId;
@@ -732,7 +733,14 @@ export default function EmployerSpatialHomePage() {
         </section>
 
         {/* =================================================================
-            SECTION 4 — TECHNICAL CAPABILITIES / STACK (Section 21)
+            SECTION 4 — SELECTED RECOGNITION (Sections 26, 27, 28, 36)
+            ================================================================= */}
+        <div onMouseEnter={() => setStage("recognition")}>
+          <SelectedRecognitionSection />
+        </div>
+
+        {/* =================================================================
+            SECTION 5 — TECHNICAL CAPABILITIES / STACK (Section 21)
             ================================================================= */}
         <section
           id="technical-stack"

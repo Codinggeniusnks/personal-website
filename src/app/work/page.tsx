@@ -109,56 +109,56 @@ export default function WorkIndexPage() {
           </button>
 
           {showMatrix && (
-            <div className="overflow-x-auto glass-workspace p-6">
+            <div className="overflow-x-auto glass-table-shell p-1">
               <table className="w-full text-left border-collapse text-xs sm:text-sm tabular-nums">
                 <thead>
-                  <tr className="hairline-b font-mono text-xs uppercase text-[var(--text-muted)]">
-                    <th className="p-3.5">System</th>
-                    <th className="p-3.5">Architecture</th>
-                    <th className="p-3.5">Validation Protocol</th>
-                    <th className="p-3.5">Key Evidence</th>
+                  <tr className="glass-table-header font-mono text-xs uppercase text-[var(--accent-primary)]">
+                    <th className="p-4">System</th>
+                    <th className="p-4">Architecture</th>
+                    <th className="p-4">Validation Protocol</th>
+                    <th className="p-4">Key Evidence</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-hairline)]">
-                  <tr>
-                    <td className="p-3.5 font-display font-bold text-[var(--text-primary)]">
+                  <tr className="glass-table-row">
+                    <td className="p-4 font-display font-bold text-[var(--text-primary)]">
                       01 · CardiOxy Pro
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       ESP32 + MAX30102 + Wemos D1 R1 + Arduino UNO + DS1302 RTC + SD
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       Tri-mode (Manual / Online / Offline ESP-NOW) + Pre-threshold trend detection
                     </td>
-                    <td className="p-3.5 font-mono text-xs text-[var(--text-primary)]">
+                    <td className="p-4 font-mono text-xs text-[var(--text-primary)]">
                       HR &gt; 100 | HR &lt; 60 | SpO₂ &lt; 90% · ISIC-WOU24 Gold · BIICC 2026 Best AI Tech + Gold
                     </td>
                   </tr>
-                  <tr>
-                    <td className="p-3.5 font-display font-bold text-[var(--text-primary)]">
+                  <tr className="glass-table-row">
+                    <td className="p-4 font-display font-bold text-[var(--text-primary)]">
                       02 · FoodResilience
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       Direct Multi-Horizon LightGBM, CatBoost, XGBoost + Days-of-Stock Engine
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       Expanding Walk-Forward CV (2024-10-01 to 2024-12-31)
                     </td>
-                    <td className="p-3.5 font-mono text-xs text-[var(--text-primary)]">
+                    <td className="p-4 font-mono text-xs text-[var(--text-primary)]">
                       1d, 3d, 7d, 14d, 21d, 30d horizons · UN SDG 12
                     </td>
                   </tr>
-                  <tr>
-                    <td className="p-3.5 font-display font-bold text-[var(--text-primary)]">
+                  <tr className="glass-table-row">
+                    <td className="p-4 font-display font-bold text-[var(--text-primary)]">
                       03 · Occupational AI
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       Word 1–3g + Char 3–5g TF-IDF · OvR LogReg (C=2.2, τ=0.42) · Platt
                     </td>
-                    <td className="p-3.5 text-[var(--text-secondary)]">
+                    <td className="p-4 text-[var(--text-secondary)]">
                       Protocol B vs Protocol C + 3× GOLD Weighted Hybrid
                     </td>
-                    <td className="p-3.5 font-mono text-xs text-[var(--text-primary)]">
+                    <td className="p-4 font-mono text-xs text-[var(--text-primary)]">
                       Skills Macro F1 0.7149 · Demand F1 0.7644 · ROC AUC 0.8379 · Brier 0.1668
                     </td>
                   </tr>

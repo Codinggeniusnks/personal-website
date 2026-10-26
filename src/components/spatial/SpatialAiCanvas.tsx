@@ -8,6 +8,7 @@ export type SpatialStage =
   | "hero"
   | "work"
   | "build"
+  | "recognition"
   | "stack"
   | "about"
   | "journey"
@@ -29,6 +30,7 @@ const STAGE_CAMERA_Z: Record<SpatialStage, number> = {
   hero: 6.1,
   work: 5.0,
   build: 5.5,
+  recognition: 5.6,
   stack: 5.6,
   about: 5.9,
   journey: 6.1,
@@ -39,6 +41,7 @@ const STAGE_ROTATION_Y: Record<SpatialStage, number> = {
   hero: 0.25,
   work: 0.95,
   build: 1.55,
+  recognition: 1.85,
   stack: 2.1,
   about: 2.65,
   journey: 3.15,

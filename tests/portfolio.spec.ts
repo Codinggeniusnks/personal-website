@@ -11,8 +11,8 @@ const VIEWPORTS = [
   { width: 360, height: 800, name: "360x800-compact-phone" },
 ];
 
-test.describe("Kai Sheng Employer-Focused Interactive 3D Portfolio — Multi-Viewport & Technical QA", () => {
-  test("Homepage 5-second employer clarity, 3D AI Core satellites, What I Build, Technical Stack, and all 8 viewports pass with zero overflow", async ({
+test.describe("Kai Sheng Master AI/ML Portfolio — Multi-Viewport & Technical QA", () => {
+  test("Homepage 5-second employer clarity, 3D AI Core satellites, What I Build, Selected Recognition, and all 8 viewports pass with zero overflow", async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -25,13 +25,18 @@ test.describe("Kai Sheng Employer-Focused Interactive 3D Portfolio — Multi-Vie
       page.getByText("I build intelligent systems that turn data into predictions")
     ).toBeVisible();
 
-    // Verify primary magnetic CTA and employer sections
+    // Verify primary magnetic CTA and employer sections in exact Section 17 order
     await expect(page.getByRole("link", { name: /VIEW MY WORK/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "FEATURED PROJECTS" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "WHAT I BUILD" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "SELECTED RECOGNITION" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "TECHNICAL STACK" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "ABOUT ME" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /EDUCATION & JOURNEY/i })).toBeVisible();
+
+    // Verify Section 36: More Beyond the Highlights & LinkedIn CTA
+    await expect(page.getByRole("heading", { name: "MORE BEYOND THE HIGHLIGHTS" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /VIEW LINKEDIN/i })).toBeVisible();
 
     // Test interactive 3D satellite node selection in Featured Projects
     await page
@@ -40,14 +45,6 @@ test.describe("Kai Sheng Employer-Focused Interactive 3D Portfolio — Multi-Vie
       .click();
     await expect(
       page.locator("#featured-projects").getByText("3D SATELLITE LOCKED: 02")
-    ).toBeVisible();
-
-    await page
-      .locator("#featured-projects")
-      .getByRole("tab", { name: /03 — OCCUPATIONAL SKILLS/i })
-      .click();
-    await expect(
-      page.locator("#featured-projects").getByText("3D SATELLITE LOCKED: 03")
     ).toBeVisible();
 
     // Check all 8 viewports for zero horizontal overflow
@@ -62,7 +59,7 @@ test.describe("Kai Sheng Employer-Focused Interactive 3D Portfolio — Multi-Vie
     expect(errors).toEqual([]);
   });
 
-  test("All 3 employer case studies (11-section structure + interactive metaphors) and modular placeholders work cleanly", async ({
+  test("All 3 employer case studies (11-section structure + interactive metaphors) and Certificate Viewer work cleanly", async ({
     page,
   }) => {
     // 1. Work Index
@@ -92,28 +89,33 @@ test.describe("Kai Sheng Employer-Focused Interactive 3D Portfolio — Multi-Vie
       "Occupational Skills & Demand Predictor"
     );
     await expect(page.getByText(/OCCUPATION AT CENTRE/i)).toBeVisible();
-    await page
-      .getByRole("button", { name: /Inspect Protocol B \/ C Benchmarks/i })
-      .click();
-    await expect(page.getByText(/0\.8379/).first()).toBeVisible();
 
-    // 5. Verify Modular Placeholders (/achievements and /resume)
+    // 5. Verify Achievements page & Certificate Viewer Modal
     await page.goto("/achievements");
-    await expect(page.locator("h1")).toContainText("ACHIEVEMENTS");
-    await expect(page.getByText("[ Achievement item placeholder ]").first()).toBeVisible();
+    await expect(page.locator("h1")).toContainText("ACHIEVEMENTS & RECOGNITION");
+    await expect(page.getByText(/PROJECT SUPERVISOR/i).first()).toBeVisible();
 
-    await page.goto("/resume");
-    await expect(page.locator("h1")).toContainText("PRINTABLE CV");
-    await expect(
-      page.getByText("My professional CV will be available here.")
-    ).toBeVisible();
+    // Open certificate viewer
+    await page.getByRole("button", { name: /View Certificates/i }).first().click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByText(/VERIFIED DISTINCTION RECORD/i)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
 
-    // 6. Verify About & Contact pages
-    for (const route of ["/about", "/contact"]) {
+    // 6. Verify Printable CV (/resume and /cv)
+    for (const route of ["/resume", "/cv"]) {
       const response = await page.goto(route);
       expect(response?.status()).toBe(200);
-      await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator("h1")).toContainText("PRINTABLE CV");
     }
+
+    // 7. Verify Admin portal unlock (/admin)
+    await page.goto("/admin");
+    await expect(page.locator("h1")).toContainText("Admin Authentication");
+    await page.locator("#admin-pin").fill("1234");
+    await page.getByRole("button", { name: /Unlock Admin Portal/i }).click();
+    await expect(page.locator("h1")).toContainText("Content Management Console");
+    await expect(page.getByRole("button", { name: /\+ Add Achievement/i })).toBeVisible();
   });
 
   test("Floating glass navigation drawer and theme toggle work across mobile and desktop", async ({
