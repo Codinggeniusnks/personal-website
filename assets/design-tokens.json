@@ -1,0 +1,78 @@
+{
+  "primitive": {
+    "colors": {
+      "obsidian-950": "#090C10",
+      "obsidian-900": "#11161F",
+      "obsidian-800": "#171E2B",
+      "obsidian-700": "#1E2736",
+      "slate-100": "#F3F6FA",
+      "slate-300": "#9BA8BC",
+      "slate-400": "#6E7D94",
+      "paper-50": "#F7F6F2",
+      "paper-100": "#EFECE6",
+      "paper-200": "#D6D3CD",
+      "ink-950": "#0F172A",
+      "ink-700": "#334155",
+      "ink-500": "#526075",
+      "emerald-500": "#10B981",
+      "emerald-700": "#047857",
+      "amber-500": "#F59E0B",
+      "amber-700": "#B45309",
+      "cyan-400": "#38BDF8",
+      "cyan-700": "#0369A1",
+      "red-500": "#EF4444"
+    },
+    "spacing": {
+      "1": "0.25rem",
+      "2": "0.5rem",
+      "3": "0.75rem",
+      "4": "1rem",
+      "6": "1.5rem",
+      "8": "2rem",
+      "12": "3rem",
+      "16": "4rem",
+      "24": "6rem"
+    },
+    "typography": {
+      "font-display": "'Space Grotesk', sans-serif",
+      "font-serif": "'Newsreader', serif",
+      "font-sans": "'Plus Jakarta Sans', sans-serif",
+      "font-mono": "'JetBrains Mono', monospace"
+    }
+  },
+  "semantic": {
+    "dark": {
+      "bg-primary": "var(--obsidian-950)",
+      "bg-surface": "var(--obsidian-900)",
+      "bg-elevated": "var(--obsidian-800)",
+      "text-primary": "var(--slate-100)",
+      "text-secondary": "var(--slate-300)",
+      "text-muted": "var(--slate-400)",
+      "accent-signal": "var(--emerald-500)",
+      "accent-warning": "var(--amber-500)",
+      "accent-info": "var(--cyan-400)",
+      "status-danger": "var(--red-500)",
+      "border-hairline": "var(--obsidian-700)"
+    },
+    "light": {
+      "bg-primary": "var(--paper-50)",
+      "bg-surface": "var(--paper-100)",
+      "bg-elevated": "#FFFFFF",
+      "text-primary": "var(--ink-950)",
+      "text-secondary": "var(--ink-700)",
+      "text-muted": "var(--ink-500)",
+      "accent-signal": "var(--emerald-700)",
+      "accent-warning": "var(--amber-700)",
+      "accent-info": "var(--cyan-700)",
+      "status-danger": "var(--red-500)",
+      "border-hairline": "var(--paper-200)"
+    }
+  },
+  "component": {
+    "card-bg": "var(--bg-surface)",
+    "card-border": "var(--border-hairline)",
+    "btn-primary-bg": "var(--accent-signal)",
+    "btn-primary-text": "#090C10",
+    "telemetry-grid-line": "rgba(155, 168, 188, 0.08)"
+  }
+}

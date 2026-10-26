@@ -1,0 +1,194 @@
+{
+  "nodes": [
+    {
+      "id": "src/app/globals.css",
+      "lines": 182,
+      "type": "route"
+    },
+    {
+      "id": "src/app/layout.tsx",
+      "lines": 121,
+      "type": "route"
+    },
+    {
+      "id": "src/app/not-found.tsx",
+      "lines": 37,
+      "type": "route"
+    },
+    {
+      "id": "src/app/page.tsx",
+      "lines": 439,
+      "type": "route"
+    },
+    {
+      "id": "src/app/robots.ts",
+      "lines": 13,
+      "type": "route"
+    },
+    {
+      "id": "src/app/sitemap.ts",
+      "lines": 25,
+      "type": "route"
+    },
+    {
+      "id": "src/app/about/page.tsx",
+      "lines": 169,
+      "type": "route"
+    },
+    {
+      "id": "src/app/achievements/page.tsx",
+      "lines": 113,
+      "type": "route"
+    },
+    {
+      "id": "src/app/contact/page.tsx",
+      "lines": 254,
+      "type": "route"
+    },
+    {
+      "id": "src/app/resume/page.tsx",
+      "lines": 211,
+      "type": "route"
+    },
+    {
+      "id": "src/app/work/page.tsx",
+      "lines": 217,
+      "type": "route"
+    },
+    {
+      "id": "src/app/work/[slug]/page.tsx",
+      "lines": 474,
+      "type": "route"
+    },
+    {
+      "id": "src/components/instruments/CaseStudySimulators.tsx",
+      "lines": 660,
+      "type": "component"
+    },
+    {
+      "id": "src/components/instruments/HeroTelemetryBench.tsx",
+      "lines": 538,
+      "type": "component"
+    },
+    {
+      "id": "src/components/layout/Footer.tsx",
+      "lines": 200,
+      "type": "component"
+    },
+    {
+      "id": "src/components/layout/Navbar.tsx",
+      "lines": 209,
+      "type": "component"
+    },
+    {
+      "id": "src/data/achievements.ts",
+      "lines": 206,
+      "type": "data"
+    },
+    {
+      "id": "src/data/capabilities.ts",
+      "lines": 196,
+      "type": "data"
+    },
+    {
+      "id": "src/data/profile.ts",
+      "lines": 174,
+      "type": "data"
+    },
+    {
+      "id": "src/data/projects.ts",
+      "lines": 869,
+      "type": "data"
+    }
+  ],
+  "edges": [
+    {
+      "source": "src/app/layout.tsx",
+      "target": "@/components/layout/Navbar"
+    },
+    {
+      "source": "src/app/layout.tsx",
+      "target": "@/components/layout/Footer"
+    },
+    {
+      "source": "src/app/layout.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "@/data/capabilities"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "@/data/achievements"
+    },
+    {
+      "source": "src/app/page.tsx",
+      "target": "@/components/instruments/HeroTelemetryBench"
+    },
+    {
+      "source": "src/app/sitemap.ts",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/app/about/page.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/about/page.tsx",
+      "target": "@/data/capabilities"
+    },
+    {
+      "source": "src/app/achievements/page.tsx",
+      "target": "@/data/achievements"
+    },
+    {
+      "source": "src/app/contact/page.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/resume/page.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/resume/page.tsx",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/app/resume/page.tsx",
+      "target": "@/data/achievements"
+    },
+    {
+      "source": "src/app/resume/page.tsx",
+      "target": "@/data/capabilities"
+    },
+    {
+      "source": "src/app/work/page.tsx",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/app/work/[slug]/page.tsx",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/app/work/[slug]/page.tsx",
+      "target": "@/components/instruments/CaseStudySimulators"
+    },
+    {
+      "source": "src/components/layout/Footer.tsx",
+      "target": "@/data/profile"
+    },
+    {
+      "source": "src/components/layout/Navbar.tsx",
+      "target": "@/data/profile"
+    }
+  ]
+}

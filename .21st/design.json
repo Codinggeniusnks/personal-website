@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "project": "kai-sheng-portfolio",
+  "direction": "Precision Field Instrument & Editorial Systems Monograph",
+  "theme": {
+    "default": "dark",
+    "supportsLight": true,
+    "palette": {
+      "darkBg": "#090C10",
+      "lightBg": "#F7F6F2",
+      "signalEmerald": "#10B981",
+      "instrumentAmber": "#F59E0B",
+      "opticalCyan": "#38BDF8"
+    }
+  },
+  "decisions": [
+    {
+      "date": "2026-10-26",
+      "surface": "global",
+      "choice": "Direction A: Precision Field Instrument & Editorial Systems Monograph with interactive 3-channel telemetry bench and exposed structural grid."
+    }
+  ]
+}
