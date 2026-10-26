@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Award } from "lucide-react";
 import { projects } from "@/data/projects";
 import { SpatialAiCanvas, type ActiveProjectId } from "@/components/spatial/SpatialAiCanvas";
+import { MagneticButton } from "@/components/spatial/InteractivePrimitives";
 
 export default function WorkIndexPage() {
   const [focusedProject, setFocusedProject] = useState<ActiveProjectId>("cardioxy-pro");
@@ -20,7 +21,8 @@ export default function WorkIndexPage() {
             Engineering Case Studies
           </h1>
           <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
-            Select a system node below to enter its dedicated spatial case-study environment and interactive verification lab.
+            Select a system node below to enter its dedicated employer-focused case study and
+            interactive verification simulator.
           </p>
         </header>
 
@@ -40,6 +42,7 @@ export default function WorkIndexPage() {
                   <h2 className="font-display text-2xl font-bold tracking-[-0.025em] text-[var(--text-primary)]">
                     <Link
                       href={`/work/${project.slug}`}
+                      data-cursor="view"
                       className="hover:text-[var(--accent-primary)] transition-colors"
                     >
                       <span className="font-mono text-xs text-[var(--accent-primary)] mr-2 tabular-nums">
@@ -49,7 +52,7 @@ export default function WorkIndexPage() {
                     </Link>
                   </h2>
 
-                  <div className="font-mono text-xs text-[var(--accent-secondary)]">
+                  <div className="font-mono text-xs text-[var(--accent-primary)]">
                     {project.category}
                   </div>
 
@@ -77,13 +80,15 @@ export default function WorkIndexPage() {
                     {project.stack.slice(0, 4).join(" · ")}
                   </div>
 
-                  <Link
+                  <MagneticButton
                     href={`/work/${project.slug}`}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 px-5 rounded-full bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.08em] hover:bg-[var(--accent-primary-hover)] transition-colors"
+                    cursorType="view"
+                    variant="primary"
+                    className="w-full"
                   >
                     <span>Explore Project</span>
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                  </MagneticButton>
                 </div>
               </article>
             );

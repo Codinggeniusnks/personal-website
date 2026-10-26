@@ -2,48 +2,56 @@
 
 :root,
 [data-theme="dark"] {
-  --bg-canvas: #07090E;
-  --bg-surface: rgba(14, 18, 26, 0.64);
-  --bg-elevated: rgba(22, 28, 40, 0.78);
-  --bg-glass: rgba(12, 16, 24, 0.58);
-  --bg-glass-active: rgba(18, 24, 36, 0.82);
-  --text-primary: #F5F4F0;
-  --text-secondary: #A9B2C3;
-  --text-muted: #697386;
-  --accent-primary: #E86238;
-  --accent-primary-hover: #F4764E;
-  --accent-primary-soft: rgba(232, 98, 56, 0.14);
-  --accent-secondary: #2DD4BF;
-  --accent-secondary-soft: rgba(45, 212, 191, 0.12);
-  --accent-amber: #F59E0B;
-  --accent-amber-soft: rgba(245, 158, 11, 0.12);
-  --border-hairline: rgba(245, 244, 240, 0.08);
-  --border-strong: rgba(245, 244, 240, 0.22);
+  --bg-canvas: #06090F;
+  --bg-surface: rgba(12, 17, 26, 0.72);
+  --bg-elevated: rgba(18, 25, 38, 0.86);
+  --bg-glass: rgba(11, 16, 25, 0.62);
+  --bg-glass-active: rgba(16, 24, 38, 0.86);
+  --text-primary: #F4F4F0;
+  --text-secondary: #98A4B8;
+  --text-muted: #647187;
+  --accent-primary: #22D3EE;
+  --accent-primary-hover: #67E8F9;
+  --accent-primary-soft: rgba(34, 211, 238, 0.13);
+  --accent-secondary: #38BDF8;
+  --accent-secondary-soft: rgba(56, 189, 248, 0.12);
+  --accent-amber: #22D3EE;
+  --accent-amber-soft: rgba(34, 211, 238, 0.12);
+  --border-hairline: rgba(244, 244, 240, 0.08);
+  --border-strong: rgba(34, 211, 238, 0.34);
   --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
-  --shadow-panel: 0 24px 64px -20px rgba(0, 0, 0, 0.72);
+  --shadow-panel: 0 24px 64px -20px rgba(0, 0, 0, 0.76);
+
+  /* Consistent Motion System Timings (Section 14) */
+  --dur-micro: 150ms;
+  --dur-button: 220ms;
+  --dur-panel: 380ms;
+  --dur-section: 600ms;
+  --dur-camera: 750ms;
+  --dur-cinematic: 1050ms;
   color-scheme: dark;
 }
 
 [data-theme="light"] {
-  --bg-canvas: #F5F4F0;
-  --bg-surface: rgba(255, 255, 255, 0.72);
-  --bg-elevated: rgba(255, 255, 255, 0.90);
-  --bg-glass: rgba(255, 255, 255, 0.68);
-  --bg-glass-active: rgba(255, 255, 255, 0.92);
-  --text-primary: #0D1117;
-  --text-secondary: #3E4859;
-  --text-muted: #667185;
-  --accent-primary: #D4481D;
-  --accent-primary-hover: #B83A14;
-  --accent-primary-soft: rgba(212, 72, 29, 0.10);
-  --accent-secondary: #0F766E;
-  --accent-secondary-soft: rgba(15, 118, 110, 0.10);
-  --accent-amber: #B45309;
-  --accent-amber-soft: rgba(180, 83, 9, 0.10);
-  --border-hairline: rgba(13, 17, 23, 0.10);
-  --border-strong: rgba(13, 17, 23, 0.24);
-  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
-  --shadow-panel: 0 20px 48px -18px rgba(13, 17, 23, 0.10);
+  --bg-canvas: #F4F5F7;
+  --bg-surface: rgba(255, 255, 255, 0.82);
+  --bg-elevated: rgba(255, 255, 255, 0.94);
+  --bg-glass: rgba(255, 255, 255, 0.76);
+  --bg-glass-active: rgba(255, 255, 255, 0.96);
+  --text-primary: #0B111E;
+  --text-secondary: #3E4C63;
+  --text-muted: #64748B;
+  --accent-primary: #0284C7;
+  --accent-primary-hover: #0369A1;
+  --accent-primary-soft: rgba(2, 132, 199, 0.11);
+  --accent-secondary: #0891B2;
+  --accent-secondary-soft: rgba(8, 145, 178, 0.10);
+  --accent-amber: #0284C7;
+  --accent-amber-soft: rgba(2, 132, 199, 0.10);
+  --border-hairline: rgba(11, 17, 30, 0.10);
+  --border-strong: rgba(2, 132, 199, 0.35);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.70);
+  --shadow-panel: 0 20px 48px -18px rgba(11, 17, 30, 0.10);
   color-scheme: light;
 }
 
@@ -74,7 +82,7 @@ body {
 
 ::selection {
   background-color: var(--accent-primary);
-  color: #FFFFFF;
+  color: #06090F;
 }
 
 ::-webkit-scrollbar {
@@ -121,7 +129,7 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* Layer 2: Floating Optical Glass Window */
+/* Floating Optical Glass Window */
 .glass-panel,
 .surface-card {
   background-color: var(--bg-glass);
@@ -130,9 +138,10 @@ a {
   border: 1px solid var(--border-hairline);
   box-shadow: var(--glass-highlight), var(--shadow-panel);
   border-radius: 16px;
+  transition: border-color var(--dur-button) ease, background-color var(--dur-panel) ease;
 }
 
-/* Layer 3: Active Focused Project Window */
+/* Active Focused Glass Window */
 .glass-panel-active,
 .surface-elevated {
   background-color: var(--bg-glass-active);
@@ -141,9 +150,10 @@ a {
   border: 1px solid var(--border-strong);
   box-shadow: var(--glass-highlight), var(--shadow-panel);
   border-radius: 18px;
+  transition: border-color var(--dur-button) ease, background-color var(--dur-panel) ease;
 }
 
-/* Layer 4: Expanded Case-Study Workspace */
+/* Expanded Case-Study Workspace */
 .glass-workspace {
   background-color: var(--bg-glass-active);
   backdrop-filter: blur(32px) saturate(150%);
@@ -185,6 +195,11 @@ a {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
   body {
     background: #FFFFFF !important;
     color: #000000 !important;

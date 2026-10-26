@@ -7,17 +7,16 @@ import * as THREE from "three";
 export type SpatialStage =
   | "hero"
   | "work"
+  | "build"
+  | "stack"
   | "about"
-  | "capabilities"
-  | "achievements"
   | "journey"
   | "contact";
 
 export type ActiveProjectId =
   | "cardioxy-pro"
   | "foodresilience"
-  | "occupational-skills-demand"
-  | "future-research";
+  | "occupational-skills-demand";
 
 interface CoreSceneProps {
   stage: SpatialStage;
@@ -26,21 +25,30 @@ interface CoreSceneProps {
   reducedMotion: boolean;
 }
 
-const PROJECT_ACCENTS: Record<ActiveProjectId, string> = {
-  "cardioxy-pro": "#E86238",
-  foodresilience: "#2DD4BF",
-  "occupational-skills-demand": "#F59E0B",
-  "future-research": "#94A3B8",
+const STAGE_CAMERA_Z: Record<SpatialStage, number> = {
+  hero: 6.1,
+  work: 5.0,
+  build: 5.5,
+  stack: 5.6,
+  about: 5.9,
+  journey: 6.1,
+  contact: 6.8,
 };
 
-const STAGE_CAMERA_Z: Record<SpatialStage, number> = {
-  hero: 6.2,
-  work: 5.1,
-  about: 5.8,
-  capabilities: 5.5,
-  achievements: 5.9,
-  journey: 6.0,
-  contact: 6.8,
+const STAGE_ROTATION_Y: Record<SpatialStage, number> = {
+  hero: 0.25,
+  work: 0.95,
+  build: 1.55,
+  stack: 2.1,
+  about: 2.65,
+  journey: 3.15,
+  contact: 3.6,
+};
+
+const PROJECT_ROTATION_OFFSET: Record<ActiveProjectId, { x: number; y: number }> = {
+  "cardioxy-pro": { x: 0.14, y: -0.28 },
+  foodresilience: { x: -0.1, y: 0.32 },
+  "occupational-skills-demand": { x: 0.18, y: 0.72 },
 };
 
 function AiCoreLattice({
@@ -52,14 +60,14 @@ function AiCoreLattice({
   const groupRef = useRef<THREE.Group>(null);
   const innerCoreRef = useRef<THREE.Mesh>(null);
   const outerShellRef = useRef<THREE.Mesh>(null);
-  const pointsRef = useRef<THREE.Points>(null);
 
-  const accentHex = PROJECT_ACCENTS[activeProject] || "#E86238";
-  const targetColor = useMemo(() => new THREE.Color(accentHex), [accentHex]);
+  // Single controlled cool technological colour: Electric Cyan (#22D3EE)
+  const cyanColor = useMemo(() => new THREE.Color("#22D3EE"), []);
+  const mutedSlateColor = useMemo(() => new THREE.Color("#64748B"), []);
 
-  // Generate deterministic neural lattice points on a Fibonacci sphere
+  // Deterministic neural lattice on a Fibonacci sphere
   const { positions, linePositions } = useMemo(() => {
-    const count = 160;
+    const count = 148;
     const pos = new Float32Array(count * 3);
     const pts: THREE.Vector3[] = [];
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
@@ -67,7 +75,7 @@ function AiCoreLattice({
     for (let i = 0; i < count; i++) {
       const theta = (2 * Math.PI * i) / goldenRatio;
       const phi = Math.acos(1 - (2 * (i + 0.5)) / count);
-      const r = 1.85 + (i % 5) * 0.14;
+      const r = 1.82 + (i % 4) * 0.13;
       const x = r * Math.sin(phi) * Math.cos(theta);
       const y = r * Math.sin(phi) * Math.sin(theta);
       const z = r * Math.cos(phi);
@@ -77,12 +85,11 @@ function AiCoreLattice({
       pts.push(new THREE.Vector3(x, y, z));
     }
 
-    // Connect nearby lattice nodes into a sparse neural web
     const segments: number[] = [];
     for (let i = 0; i < count; i++) {
       let connections = 0;
       for (let j = i + 1; j < count && connections < 2; j++) {
-        if (pts[i].distanceTo(pts[j]) < 0.78) {
+        if (pts[i].distanceTo(pts[j]) < 0.76) {
           segments.push(
             pts[i].x,
             pts[i].y,
@@ -102,67 +109,79 @@ function AiCoreLattice({
     };
   }, []);
 
-  // 4 Orbiting Project Constellation Nodes in 3D space
-  const satelliteOffsets = useMemo(
+  // 3 Orbiting Project Objects around the AI Core
+  const satellites = useMemo(
     () => [
-      { id: "cardioxy-pro", pos: new THREE.Vector3(0, 2.35, 0.4), color: "#E86238" },
-      { id: "foodresilience", pos: new THREE.Vector3(2.55, 0.1, 0.3), color: "#2DD4BF" },
-      { id: "occupational-skills-demand", pos: new THREE.Vector3(-2.55, 0.1, 0.3), color: "#F59E0B" },
-      { id: "future-research", pos: new THREE.Vector3(0, -2.35, 0.2), color: "#94A3B8" },
+      { id: "cardioxy-pro", pos: new THREE.Vector3(-2.35, 1.15, 0.35) },
+      { id: "foodresilience", pos: new THREE.Vector3(2.4, 0.85, 0.35) },
+      { id: "occupational-skills-demand", pos: new THREE.Vector3(0.15, -2.25, 0.35) },
     ],
     []
   );
 
   useFrame((state, delta) => {
-    const targetZ = ctaHovered ? 4.8 : STAGE_CAMERA_Z[stage];
+    // Weighted camera Z interpolation
+    const targetZ = ctaHovered ? 4.75 : STAGE_CAMERA_Z[stage];
     state.camera.position.z = THREE.MathUtils.lerp(
       state.camera.position.z,
       targetZ,
-      delta * 2.4
+      delta * 2.1
     );
 
-    // Subtle pointer parallax
-    const pointerX = state.pointer.x * 0.45;
-    const pointerY = state.pointer.y * 0.35;
+    // Damped cursor-reactive camera angle
+    const pointerX = reducedMotion ? 0 : state.pointer.x * 0.48;
+    const pointerY = reducedMotion ? 0 : state.pointer.y * 0.36;
     state.camera.position.x = THREE.MathUtils.lerp(
       state.camera.position.x,
       pointerX,
-      delta * 2.2
+      delta * 1.8
     );
     state.camera.position.y = THREE.MathUtils.lerp(
       state.camera.position.y,
       pointerY,
-      delta * 2.2
+      delta * 1.8
     );
     state.camera.lookAt(0, 0, 0);
 
     if (!groupRef.current) return;
 
-    const speedMultiplier =
-      stage === "contact" ? 0.35 : ctaHovered ? 1.8 : stage === "work" ? 0.9 : 0.65;
+    // Intentional stage + project + pointer target orientation (not a mindless continuous spin)
+    const projOffset = PROJECT_ROTATION_OFFSET[activeProject];
+    const targetRotY =
+      STAGE_ROTATION_Y[stage] +
+      projOffset.y +
+      pointerX * 0.55 +
+      (reducedMotion ? 0 : Math.sin(state.clock.elapsedTime * 0.22) * 0.12);
+    const targetRotX =
+      projOffset.x -
+      pointerY * 0.42 +
+      (reducedMotion ? 0 : Math.cos(state.clock.elapsedTime * 0.18) * 0.06);
 
-    if (!reducedMotion) {
-      groupRef.current.rotation.y += delta * 0.16 * speedMultiplier;
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(
-        groupRef.current.rotation.x,
-        pointerY * 0.3 + (stage === "work" ? 0.18 : 0.05),
-        delta * 2
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y,
+      targetRotY,
+      delta * 1.9
+    );
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(
+      groupRef.current.rotation.x,
+      targetRotX,
+      delta * 1.9
+    );
+
+    if (innerCoreRef.current) {
+      const targetScale = ctaHovered ? 1.12 : stage === "contact" ? 0.94 : 1.02;
+      innerCoreRef.current.scale.lerp(
+        new THREE.Vector3(targetScale, targetScale, targetScale),
+        delta * 2.4
       );
     }
 
-    if (innerCoreRef.current) {
-      const pulse =
-        1 +
-        Math.sin(state.clock.elapsedTime * (ctaHovered ? 3.2 : 1.6)) *
-          (stage === "contact" ? 0.02 : 0.05);
-      innerCoreRef.current.scale.setScalar(pulse);
-      if (!reducedMotion) {
-        innerCoreRef.current.rotation.z -= delta * 0.12;
-      }
-    }
-
-    if (outerShellRef.current && !reducedMotion) {
-      outerShellRef.current.rotation.y -= delta * 0.08 * speedMultiplier;
+    if (outerShellRef.current) {
+      outerShellRef.current.rotation.z = THREE.MathUtils.lerp(
+        outerShellRef.current.rotation.z,
+        pointerX * -0.25,
+        delta * 1.5
+      );
     }
   });
 
@@ -170,44 +189,41 @@ function AiCoreLattice({
     <group ref={groupRef}>
       {/* Central Computational Core Icosahedron */}
       <mesh ref={innerCoreRef}>
-        <icosahedronGeometry args={[1.05, 1]} />
+        <icosahedronGeometry args={[1.02, 1]} />
         <meshBasicMaterial
-          color={targetColor}
+          color={cyanColor}
           wireframe
           transparent
-          opacity={ctaHovered ? 0.42 : stage === "contact" ? 0.18 : 0.28}
+          opacity={ctaHovered ? 0.42 : stage === "contact" ? 0.15 : 0.26}
         />
       </mesh>
 
-      {/* Secondary Geodesic Lattice Shell */}
+      {/* Secondary Structural Geodesic Lattice */}
       <mesh ref={outerShellRef}>
-        <icosahedronGeometry args={[1.65, 2]} />
+        <icosahedronGeometry args={[1.64, 2]} />
         <meshBasicMaterial
-          color="#94A3B8"
+          color={mutedSlateColor}
           wireframe
           transparent
-          opacity={stage === "contact" ? 0.05 : 0.09}
+          opacity={stage === "contact" ? 0.04 : 0.08}
         />
       </mesh>
 
       {/* Neural Lattice Nodes */}
-      <points ref={pointsRef}>
+      <points>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          color={targetColor}
-          size={ctaHovered ? 0.055 : 0.042}
+          color={cyanColor}
+          size={ctaHovered ? 0.052 : 0.038}
           transparent
-          opacity={0.82}
+          opacity={stage === "contact" ? 0.48 : 0.8}
           sizeAttenuation
         />
       </points>
 
-      {/* Neural Synaptic Filaments */}
+      {/* Synaptic Connection Lines */}
       <lineSegments>
         <bufferGeometry>
           <bufferAttribute
@@ -216,24 +232,24 @@ function AiCoreLattice({
           />
         </bufferGeometry>
         <lineBasicMaterial
-          color={targetColor}
+          color={cyanColor}
           transparent
-          opacity={ctaHovered ? 0.24 : stage === "contact" ? 0.07 : 0.14}
+          opacity={ctaHovered ? 0.24 : stage === "contact" ? 0.06 : 0.13}
         />
       </lineSegments>
 
-      {/* 4 Constellation Satellite Nodes */}
-      {satelliteOffsets.map((sat) => {
+      {/* 3 Project Objects Orbiting the AI Core */}
+      {satellites.map((sat) => {
         const isSelected = activeProject === sat.id;
         return (
           <group key={sat.id} position={sat.pos}>
-            <mesh scale={isSelected ? 1.45 : 0.9}>
-              <octahedronGeometry args={[0.12, 0]} />
+            <mesh scale={isSelected ? 1.5 : 0.92}>
+              <octahedronGeometry args={[0.13, 0]} />
               <meshBasicMaterial
-                color={sat.color}
+                color={isSelected ? cyanColor : mutedSlateColor}
                 wireframe={!isSelected}
                 transparent
-                opacity={isSelected ? 0.95 : 0.45}
+                opacity={isSelected ? 0.95 : 0.4}
               />
             </mesh>
           </group>
@@ -273,25 +289,24 @@ export function SpatialAiCanvas({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  const accentHex = PROJECT_ACCENTS[activeProject] || "#E86238";
-
   return (
     <div
       aria-hidden="true"
       className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none"
     >
-      {/* Subtle Ambient Radial Atmosphere */}
+      {/* Restrained Cool Cyan Atmospheric Depth */}
       <div
         className="absolute inset-0 transition-opacity duration-700"
         style={{
-          background: `radial-gradient(circle at 50% 42%, ${accentHex}14 0%, rgba(14, 18, 28, 0.04) 46%, transparent 75%)`,
+          background:
+            "radial-gradient(circle at 52% 40%, rgba(34, 211, 238, 0.075) 0%, rgba(14, 22, 36, 0.04) 48%, transparent 74%)",
         }}
       />
 
       {webglSupported ? (
         <Canvas
           dpr={[1, 1.5]}
-          camera={{ position: [0, 0, 6.2], fov: 45 }}
+          camera={{ position: [0, 0, 6.1], fov: 45 }}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         >
           <AiCoreLattice
@@ -302,24 +317,23 @@ export function SpatialAiCanvas({
           />
         </Canvas>
       ) : (
-        /* Non-WebGL Architectural Fallback Lattice */
-        <div className="flex h-full w-full items-center justify-center opacity-30">
-          <svg className="h-[420px] w-[420px]" viewBox="0 0 200 200">
+        <div className="flex h-full w-full items-center justify-center opacity-25">
+          <svg className="h-[400px] w-[400px]" viewBox="0 0 200 200">
             <circle
               cx="100"
               cy="100"
               r="72"
               fill="none"
-              stroke={accentHex}
+              stroke="#22D3EE"
               strokeWidth="0.6"
               strokeDasharray="4 4"
             />
             <circle
               cx="100"
               cy="100"
-              r="44"
+              r="42"
               fill="none"
-              stroke={accentHex}
+              stroke="#22D3EE"
               strokeWidth="0.8"
             />
           </svg>

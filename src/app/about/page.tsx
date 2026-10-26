@@ -35,7 +35,7 @@ export default function AboutPage() {
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               href="/work"
-              className="inline-flex min-h-[46px] items-center gap-2 px-6 rounded-full bg-[var(--accent-primary)] text-white font-mono text-xs uppercase tracking-[0.08em]"
+              className="inline-flex min-h-[46px] items-center gap-2 px-6 rounded-full bg-[var(--accent-primary)] text-[#06090F] font-mono text-xs font-semibold uppercase tracking-[0.08em]"
             >
               <span>Explore Selected Work</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />

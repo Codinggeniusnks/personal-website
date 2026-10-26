@@ -3,6 +3,7 @@ import { Space_Grotesk, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/goog
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { CustomCursor } from "@/components/spatial/InteractivePrimitives";
 import { profile } from "@/data/profile";
 
 const spaceGrotesk = Space_Grotesk({
@@ -105,11 +106,12 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-screen flex-col selection:bg-[var(--accent-primary)] selection:text-white">
+      <body className="flex min-h-screen flex-col selection:bg-[var(--accent-primary)] selection:text-slate-950">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <CustomCursor />
         <Navbar />
         <main id="main-content" className="flex-1">
           {children}
