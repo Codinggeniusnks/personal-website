@@ -1,439 +1,672 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Award, CheckCircle2, Cpu, FileText, Layers, Mail, ShieldCheck, Terminal } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ArrowRight, ArrowUpRight, Award, ChevronRight, Sparkles } from "lucide-react";
 import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
-import { capabilityGroups } from "@/data/capabilities";
-import { achievements } from "@/data/achievements";
-import { HeroTelemetryBench } from "@/components/instruments/HeroTelemetryBench";
+import { skillClusters } from "@/data/skills";
+import { journeyNodes } from "@/data/journey";
+import {
+  SpatialAiCanvas,
+  type ActiveProjectId,
+  type SpatialStage,
+} from "@/components/spatial/SpatialAiCanvas";
 
-export default function HomePage() {
+const CONSTELLATION_NODES: {
+  id: ActiveProjectId;
+  index: string;
+  label: string;
+  category: string;
+  summary: string;
+  tags: string;
+  href?: string;
+  metricsPreview: string;
+  positionClass: string;
+}[] = [
+  {
+    id: "cardioxy-pro",
+    index: "01",
+    label: "CARDIOXY PRO",
+    category: "AI Healthcare + IoT",
+    summary:
+      "Predictive patient monitoring and intelligent early-warning system for elderly, chronic, and high-risk care.",
+    tags: "AI · IoT · ESP32 · ESP-NOW",
+    href: "/work/cardioxy-pro",
+    metricsPreview:
+      "Pre-threshold AI trend warnings · HR > 100 | HR < 60 | SpO₂ < 90% · ISIC-WOU24 Gold & BIICC 2026 Best AI Tech + Gold",
+    positionClass: "top-2 left-1/2 -translate-x-1/2",
+  },
+  {
+    id: "foodresilience",
+    index: "02",
+    label: "FOODRESILIENCE",
+    category: "Predictive AI + Sustainability",
+    summary:
+      "Multi-horizon food demand and purchase-price forecasting with days-of-stock inventory recommendations (DORMATHON 2026).",
+    tags: "LightGBM · CatBoost · XGBoost · SDG 12",
+    href: "/work/foodresilience",
+    metricsPreview:
+      "1d, 3d, 7d, 14d, 21d, 30d horizons · Expanding walk-forward validation (2024-Q4 holdout)",
+    positionClass: "top-1/2 right-2 -translate-y-1/2",
+  },
+  {
+    id: "occupational-skills-demand",
+    index: "03",
+    label: "OCCUPATIONAL AI",
+    category: "Machine Learning + NLP",
+    summary:
+      "Calibrated multi-label occupational skill and labour-market demand predictor across MASCO, MyCOL, O*NET, ESCO & ILO.",
+    tags: "Dual TF-IDF · OvR LogReg · Platt Calibration",
+    href: "/work/occupational-skills-demand",
+    metricsPreview:
+      "Protocol B: 0.7149 Skills Macro F1 · 0.6824 Micro F1 · 0.7644 Demand F1 · 0.8379 ROC AUC · 0.1668 Brier (Protocol C: 0.6196)",
+    positionClass: "top-1/2 left-2 -translate-y-1/2",
+  },
+  {
+    id: "future-research",
+    index: "04",
+    label: "FUTURE RESEARCH",
+    category: "Multimodal & Edge AI Systems",
+    summary:
+      "Ongoing exploration at Universiti Malaya in calibrated foundation models, sensor-grounded agents, and spatial interfaces.",
+    tags: "UM CS (AI) · Applied Research",
+    href: "/about",
+    metricsPreview:
+      "Hybrid sparse-dense retrieval · On-device neural telemetry · High-reliability AI systems",
+    positionClass: "bottom-2 left-1/2 -translate-x-1/2",
+  },
+];
+
+const ORBIT_ACHIEVEMENTS = [
+  {
+    id: "isic-2024",
+    year: "2024",
+    title: "ISIC-WOU24 — Gold Award",
+    subtitle: "International Science & Innovation Competition + SPM 10A (6A+, 4A)",
+    detail:
+      "Awarded international Gold for CardiOxy Pro's fault-tolerant patient telemetry architecture, alongside achieving 10A (6A+, 4A) in SPM.",
+  },
+  {
+    id: "kmk-2025",
+    year: "2025",
+    title: "Matriculation — PNGK 4.00 & MUET Band 4.5",
+    subtitle: "Kolej Matrikulasi Kedah (KMK)",
+    detail:
+      "Graduated with a perfect 4.00 cumulative GPA across computer science, mathematics, and physical sciences, plus MUET Band 4.5.",
+  },
+  {
+    id: "biicc-2026",
+    year: "2026",
+    title: "Best AI Technology Award + Gold Award",
+    subtitle: "Borneo International Innovation & Creativity Competition 2026",
+    detail:
+      "Dual international honours recognising CardiOxy Pro's pre-threshold predictive physiological trajectory engine and tri-mode hardware resilience.",
+  },
+  {
+    id: "um-2026",
+    year: "2026",
+    title: "Universiti Malaya — Artificial Intelligence",
+    subtitle: "Bachelor of Computer Science (Major in AI)",
+    detail:
+      "Advancing applied machine learning, walk-forward forecasting (FoodResilience), and calibrated NLP (Occupational Skills & Demand Predictor).",
+  },
+];
+
+export default function SpatialHomePage() {
+  const prefersReducedMotion = useReducedMotion();
+  const [stage, setStage] = useState<SpatialStage>("hero");
+  const [ctaHovered, setCtaHovered] = useState(false);
+  const [activeProject, setActiveProject] = useState<ActiveProjectId>("cardioxy-pro");
+  const [showMetricsDetail, setShowMetricsDetail] = useState(false);
+  const [activeClusterId, setActiveClusterId] = useState<string>("ai-ml");
+  const [activeAchievementIdx, setActiveAchievementIdx] = useState<number>(2);
+  const [activeJourneyIdx, setActiveJourneyIdx] = useState<number>(4);
+
+  const selectedNode =
+    CONSTELLATION_NODES.find((n) => n.id === activeProject) ||
+    CONSTELLATION_NODES[0];
+
+  const selectedCluster =
+    skillClusters.find((c) => c.id === activeClusterId) || skillClusters[0];
+
+  const selectedAchievement = ORBIT_ACHIEVEMENTS[activeAchievementIdx];
+  const selectedJourney = journeyNodes[activeJourneyIdx];
+
+  const handleExploreWorkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setStage("work");
+    const target = document.getElementById("selected-work");
+    if (target) {
+      target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
+    }
+  };
+
   return (
-    <div className="divide-y divide-[var(--border-hairline)]">
-      {/* 1. HERO SECTION */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 pt-10 pb-16 lg:py-20">
-        {/* Top Calibration Bar (Separate structural row, not an eyebrow inside heading block) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-6 mb-8 hairline-b font-mono text-xs text-[var(--text-muted)]">
-          <div className="flex items-center gap-2.5">
-            <span className="h-2 w-2 rounded-full bg-[var(--accent-primary)]" aria-hidden="true" />
-            <span className="text-[var(--text-primary)] font-medium">
-              {profile.fullName.toUpperCase()} ({profile.displayName})
-            </span>
-            <span>·</span>
-            <span>{profile.degree}</span>
-          </div>
-          <div className="tabular-nums text-[var(--text-secondary)]">
-            {profile.university.toUpperCase()} · {profile.location.toUpperCase()}
-          </div>
-        </div>
+    <div className="relative min-h-screen">
+      {/* Layer 0: Interactive 3D AI Core Environment */}
+      <SpatialAiCanvas
+        stage={stage}
+        activeProject={activeProject}
+        ctaHovered={ctaHovered}
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
-          {/* Left 7 Columns: Editorial Proposition & CTAs */}
-          <div className="lg:col-span-7 space-y-6">
-            <h1 className="font-display text-4xl sm:text-5xl xl:text-[3.5rem] font-bold tracking-[-0.035em] leading-[1.03] text-[var(--text-primary)]">
-              Engineering AI systems that survive contact with physical sensors, noisy markets, and strict calibration.
+      <div className="relative z-10 mx-auto max-w-[1160px] px-4 sm:px-6 lg:px-10 space-y-28 sm:space-y-36 pb-20">
+        {/* 1. SPATIAL HERO (Generous Negative Space + 5–10s Clarity) */}
+        <section
+          onMouseEnter={() => setStage("hero")}
+          className="min-h-[82vh] flex flex-col justify-center py-12"
+        >
+          <div className="max-w-2xl space-y-6">
+            <h1 className="font-display text-5xl sm:text-7xl font-bold tracking-[-0.04em] leading-[0.98] text-[var(--text-primary)]">
+              {profile.displayName}
             </h1>
 
-            <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed max-w-[64ch]">
-              I am <strong className="text-[var(--text-primary)] font-semibold">{profile.fullName}</strong>, a Computer Science (Artificial Intelligence) undergraduate at <strong className="text-[var(--text-primary)] font-semibold">Universiti Malaya</strong>. I build end-to-end applied machine learning and embedded intelligence—spanning fault-tolerant multi-MCU biomedical telemetry, walk-forward multi-horizon demand forecasting, and Platt-calibrated NLP classification engines.
+            <p className="font-mono text-xs sm:text-sm uppercase tracking-[0.16em] text-[var(--accent-primary)] font-medium">
+              AI ENGINEER + CREATIVE TECHNOLOGIST
             </p>
 
-            {/* Primary & Secondary CTAs */}
+            <p className="text-lg sm:text-xl text-[var(--text-primary)] leading-relaxed max-w-[50ch]">
+              I build intelligent systems that turn data into predictions, decisions and real-world impact.
+            </p>
+
+            <p className="text-sm text-[var(--text-secondary)] font-mono">
+              {profile.fullName} · Computer Science (Artificial Intelligence), {profile.university}
+            </p>
+
+            {/* Primary & Secondary Spatial CTAs */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                href="/work"
-                className="inline-flex min-h-[48px] items-center gap-2.5 px-6 bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.06em] hover:bg-[var(--accent-primary-hover)] transition-colors"
+              <a
+                href="#selected-work"
+                onClick={handleExploreWorkClick}
+                onMouseEnter={() => setCtaHovered(true)}
+                onMouseLeave={() => setCtaHovered(false)}
+                className="inline-flex min-h-[48px] items-center gap-2.5 px-6 rounded-full bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.08em] hover:bg-[var(--accent-primary-hover)] transition-all cursor-pointer"
               >
-                <span>Inspect Selected Work</span>
+                <span>Explore My Work</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              </a>
 
-              <Link
-                href="/contact"
-                className="inline-flex min-h-[48px] items-center gap-2 px-5 hairline-border bg-[var(--bg-surface)] text-[var(--text-primary)] font-mono text-xs uppercase tracking-[0.06em] hover:border-[var(--border-strong)] transition-colors"
+              <a
+                href="#about-window"
+                onClick={() => setStage("about")}
+                className="inline-flex min-h-[48px] items-center gap-2 px-6 rounded-full glass-panel text-[var(--text-primary)] font-mono text-xs uppercase tracking-[0.08em] hover:border-[var(--border-strong)] transition-colors"
               >
-                <Mail className="h-4 w-4 text-[var(--accent-primary)]" aria-hidden="true" />
-                <span>Initiate Contact</span>
-              </Link>
+                <span>About Me</span>
+              </a>
+            </div>
 
+            {/* Small Tertiary Links */}
+            <div className="flex items-center gap-5 pt-2 font-mono text-xs text-[var(--text-muted)]">
+              <a
+                href={profile.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-[var(--text-primary)] transition-colors"
+              >
+                <span>GitHub</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
+              </a>
+              <a
+                href={profile.linkedInUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-[var(--text-primary)] transition-colors"
+              >
+                <span>LinkedIn</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
+              </a>
               <Link
                 href="/resume"
-                className="inline-flex min-h-[48px] items-center gap-2 px-4 hairline-border bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono text-xs uppercase tracking-[0.06em] transition-colors"
+                className="inline-flex items-center gap-1 hover:text-[var(--text-primary)] transition-colors"
               >
-                <FileText className="h-4 w-4" aria-hidden="true" />
-                <span>CV / Print</span>
+                <span>CV</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
               </Link>
             </div>
+          </div>
+        </section>
 
-            {/* Verified Credibility Ledger Strip */}
-            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-nums">
-              {profile.heroMetrics.map((m) => (
-                <div key={m.label} className="p-3.5 hairline-border bg-[var(--bg-surface)]">
-                  <div className="font-display text-lg sm:text-xl font-bold text-[var(--text-primary)]">
-                    {m.value}
-                  </div>
-                  <div className="mt-1 font-mono text-[11px] uppercase tracking-[0.05em] text-[var(--accent-primary)]">
-                    {m.label}
-                  </div>
-                  <div className="mt-0.5 text-xs text-[var(--text-muted)]">{m.context}</div>
-                </div>
-              ))}
+        {/* 2. SELECTED WORK — SPATIAL PROJECT CONSTELLATION + SINGLE PREVIEW WINDOW */}
+        <section
+          id="selected-work"
+          onMouseEnter={() => setStage("work")}
+          className="scroll-mt-24 space-y-10"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="space-y-2">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+                Project Constellation
+              </h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+                Select a node orbiting the AI Core to focus and inspect its system preview.
+              </p>
             </div>
-          </div>
-
-          {/* Right 5 Columns: Live Interactive Telemetry Bench */}
-          <div className="lg:col-span-5">
-            <HeroTelemetryBench />
-          </div>
-        </div>
-      </section>
-
-      {/* 2. SELECTED WORK — EDITORIAL ENGINEERING FOLIOS */}
-      <section id="selected-work" className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12 hairline-b items-end">
-          <div className="lg:col-span-8">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-              Selected Engineering Folios
-            </h2>
-            <p className="mt-3 text-base text-[var(--text-secondary)] max-w-[62ch]">
-              Three complete systems documented with problem context, hardware/ML architecture, leakage-safe validation protocols, and honest engineering trade-offs.
-            </p>
-          </div>
-          <div className="lg:col-span-4 flex lg:justify-end">
             <Link
               href="/work"
-              className="inline-flex min-h-[44px] items-center gap-2 px-4 hairline-border bg-[var(--bg-surface)] font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
+              className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-[var(--accent-primary)] hover:underline"
             >
-              <span>View Full Case Study Matrix</span>
-              <ArrowUpRight className="h-4 w-4 text-[var(--accent-primary)]" aria-hidden="true" />
+              <span>All Projects Matrix</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
-        </div>
 
-        <div className="divide-y divide-[var(--border-hairline)]">
-          {projects.map((project) => (
-            <article
-              key={project.slug}
-              className="py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start"
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left 7 Columns: Interactive Spatial Constellation Map */}
+            <div
+              role="tablist"
+              aria-label="Project Constellation Nodes"
+              className="lg:col-span-7 relative min-h-[340px] sm:min-h-[400px] glass-panel p-6 flex items-center justify-center"
             >
-              {/* Left Column: System Index, Title, Awards, Primary CTA */}
-              <div className="lg:col-span-5 space-y-5">
-                <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-[-0.025em] text-[var(--text-primary)]">
-                  <Link
-                    href={`/work/${project.slug}`}
-                    className="hover:text-[var(--accent-primary)] transition-colors"
-                  >
-                    <span className="font-mono text-sm text-[var(--accent-primary)] mr-2.5 tabular-nums">
-                      [{project.index}]
-                    </span>
-                    {project.title}
-                  </Link>
-                </h3>
+              {/* Subtle Orbital Guide Rings */}
+              <svg
+                viewBox="0 0 360 360"
+                className="w-64 h-64 sm:w-80 sm:h-80 pointer-events-none opacity-45"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="180"
+                  cy="180"
+                  r="128"
+                  fill="none"
+                  stroke="var(--border-strong)"
+                  strokeWidth="1"
+                  strokeDasharray="4 6"
+                />
+                <circle
+                  cx="180"
+                  cy="180"
+                  r="56"
+                  fill="none"
+                  stroke="var(--accent-primary)"
+                  strokeWidth="1"
+                  strokeOpacity="0.45"
+                />
+                <circle cx="180" cy="180" r="8" fill="var(--accent-primary)" />
+              </svg>
 
-                <div className="flex flex-wrap items-center gap-2 font-mono text-xs tabular-nums">
-                  <span className="px-2.5 py-1 bg-[var(--accent-primary)] text-white font-semibold">
-                    FOLIO {project.index}
-                  </span>
-                  <span className="px-2.5 py-1 hairline-border bg-[var(--bg-surface)] text-[var(--text-secondary)]">
-                    {project.category}
-                  </span>
-                  <span className="text-[var(--text-muted)]">{project.timeframe}</span>
+              {/* Center AI Core Label */}
+              <div className="absolute pointer-events-none text-center">
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--accent-primary)]">
+                  ◉ AI CORE
                 </div>
+              </div>
 
-                <p className="text-sm sm:text-base font-medium text-[var(--text-primary)] leading-snug">
-                  {project.subtitle}
-                </p>
-
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                  {project.tagline}
-                </p>
-
-                {project.awards && project.awards.length > 0 && (
-                  <div className="space-y-1.5 pt-1">
-                    {project.awards.map((award) => (
-                      <div
-                        key={award}
-                        className="flex items-center gap-2 font-mono text-xs text-[var(--accent-amber)] bg-[var(--accent-amber-soft)] px-3 py-1.5"
-                      >
-                        <Award className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>{award}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {project.stack.map((tech) => (
+              {/* 4 Orbiting Project Nodes */}
+              {CONSTELLATION_NODES.map((node) => {
+                const isSelected = activeProject === node.id;
+                return (
+                  <button
+                    key={node.id}
+                    type="button"
+                    role="tab"
+                    id={`tab-${node.id}`}
+                    aria-selected={isSelected}
+                    aria-controls="constellation-preview-window"
+                    onMouseEnter={() => setActiveProject(node.id)}
+                    onClick={() => {
+                      setActiveProject(node.id);
+                      setShowMetricsDetail(false);
+                    }}
+                    className={`absolute ${node.positionClass} px-4 py-2.5 rounded-full font-mono text-xs transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+                      isSelected
+                        ? "glass-panel-active border-[var(--accent-primary)] text-[var(--text-primary)] scale-105"
+                        : "glass-panel text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
                     <span
-                      key={tech}
-                      className="px-2.5 py-1 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--text-secondary)]"
+                      className={`h-2 w-2 rounded-full ${
+                        isSelected ? "bg-[var(--accent-primary)]" : "bg-[var(--text-muted)]"
+                      }`}
+                    />
+                    <span className="font-semibold">{node.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right 5 Columns: Single Floating Glass Project Preview Window (Section 14) */}
+            <div className="lg:col-span-5" id="constellation-preview-window" role="tabpanel">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedNode.id}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="glass-panel-active p-7 sm:p-8 space-y-6"
+                >
+                  <div className="flex items-center justify-between font-mono text-xs text-[var(--accent-primary)] tabular-nums">
+                    <span>{selectedNode.index}</span>
+                    <span>{selectedNode.category}</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-[-0.025em] text-[var(--text-primary)]">
+                      {selectedNode.label}
+                    </h3>
+                    <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                      {selectedNode.summary}
+                    </p>
+                  </div>
+
+                  <div className="font-mono text-xs text-[var(--text-muted)]">
+                    {selectedNode.tags}
+                  </div>
+
+                  {/* Progressive Disclosure Metric Toggle */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowMetricsDetail((prev) => !prev)}
+                      aria-expanded={showMetricsDetail}
+                      className="inline-flex items-center gap-1.5 font-mono text-xs text-[var(--accent-secondary)] hover:underline cursor-pointer"
                     >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
+                      <span>
+                        {showMetricsDetail ? "Hide Key Evidence" : "Reveal Key Evidence"}
+                      </span>
+                      <ChevronRight
+                        className={`h-3.5 w-3.5 transition-transform ${
+                          showMetricsDetail ? "rotate-90" : ""
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </button>
 
-                <div className="pt-3">
-                  <Link
-                    href={`/work/${project.slug}`}
-                    className="inline-flex min-h-[46px] items-center gap-2.5 px-5 bg-[var(--bg-elevated)] hairline-border text-[var(--text-primary)] font-mono text-xs font-medium uppercase tracking-[0.06em] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] transition-colors"
-                  >
-                    <span>Inspect 16-Section Case Study &amp; Lab</span>
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right Column: Quantitative Evidence & Architecture Layers */}
-              <div className="lg:col-span-7 space-y-6">
-                {/* 4 Verified Metrics */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 tabular-nums">
-                  {project.keyMetrics.map((metric) => (
-                    <div key={metric.label} className="p-4 surface-card">
-                      <div className="font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-                        {metric.label}
-                      </div>
-                      <div className="mt-1 font-display text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
-                        {metric.value}
-                      </div>
-                      <div className="mt-1 text-xs text-[var(--text-secondary)]">
-                        {metric.detail}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* System Architecture Layers Preview */}
-                <div className="surface-card p-5 space-y-3">
-                  <div className="flex items-center justify-between pb-2 hairline-b font-mono text-xs text-[var(--text-muted)]">
-                    <span className="uppercase tracking-[0.06em] text-[var(--text-primary)]">
-                      System Architecture Topology
-                    </span>
-                    <span className="tabular-nums">4-LAYER PIPELINE</span>
+                    {showMetricsDetail && (
+                      <p className="mt-2.5 p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)] font-mono text-xs text-[var(--text-secondary)] leading-relaxed tabular-nums">
+                        {selectedNode.metricsPreview}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {project.architectureLayers.map((layer, idx) => (
-                      <div key={layer.layer} className="p-3 hairline-border bg-[var(--bg-canvas)]">
-                        <div className="font-mono text-[11px] text-[var(--accent-primary)] tabular-nums">
-                          L0{idx + 1} · {layer.layer}
-                        </div>
-                        <div className="mt-1 font-mono text-xs text-[var(--text-primary)]">
-                          {layer.components.join(" · ")}
-                        </div>
-                        <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-2">
-                          {layer.responsibility}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="pt-2">
+                    <Link
+                      href={selectedNode.href || "/work"}
+                      className="inline-flex min-h-[46px] items-center gap-2.5 px-6 rounded-full bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.08em] hover:bg-[var(--accent-primary-hover)] transition-colors"
+                    >
+                      <span>Explore Project</span>
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Link>
                   </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </section>
 
-      {/* 3. SHORT PROFESSIONAL INTRODUCTION & ENGINEERING PRINCIPLES */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <div className="lg:col-span-5 space-y-4">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-              Why I build across silicon, statistical models, and interfaces.
+        {/* 3. ABOUT ME — CONCISE FLOATING GLASS WINDOW (Section 23) */}
+        <section
+          id="about-window"
+          onMouseEnter={() => setStage("about")}
+          className="scroll-mt-24 max-w-3xl mx-auto"
+        >
+          <div className="glass-panel p-8 sm:p-10 space-y-6">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+              About Kai Sheng
             </h2>
-            <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-              Too many student AI projects stop at a notebook metric on a clean dataset. In real operations—whether monitoring a patient&apos;s oxygen saturation during a Wi-Fi outage or planning regional food reserves—models only matter when wrapped in resilient systems.
+
+            <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
+              I am a Computer Science student at <strong className="text-[var(--text-primary)] font-semibold">Universiti Malaya</strong> majoring in <strong className="text-[var(--text-primary)] font-semibold">Artificial Intelligence</strong>. My work focuses on building intelligent systems that connect machine learning, data, software and real-world applications.
             </p>
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                "AI engineering",
+                "machine learning",
+                "predictive modelling",
+                "NLP",
+                "IoT",
+                "data systems",
+                "creative technology",
+              ].map((interest) => (
+                <span
+                  key={interest}
+                  className="px-3.5 py-1.5 rounded-full hairline-border bg-[var(--bg-canvas)] font-mono text-xs text-[var(--text-secondary)]"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+
             <div className="pt-2">
               <Link
                 href="/about"
-                className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs uppercase tracking-[0.06em] text-[var(--accent-primary)] hover:underline"
+                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.08em] text-[var(--accent-primary)] hover:underline"
               >
-                <span>Read Full Engineering Philosophy</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <span>Expand Engineering Philosophy</span>
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </div>
           </div>
+        </section>
 
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {profile.engineeringPrinciples.map((principle, idx) => (
-              <div key={principle.title} className="surface-card p-5 space-y-2.5">
-                <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">
-                  <span className="font-mono text-xs text-[var(--accent-primary)] mr-2 tabular-nums">
-                    0{idx + 1}
-                  </span>
-                  {principle.title}
+        {/* 4. TECHNICAL CAPABILITIES — EVIDENCE-CONNECTED CLUSTERS (Section 26) */}
+        <section
+          onMouseEnter={() => setStage("capabilities")}
+          className="space-y-8"
+        >
+          <div className="max-w-xl space-y-2">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+              Capability Clusters
+            </h2>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+              Every capability connects directly to the system where it was engineered and validated.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* 4 Cluster Selector Pills */}
+            <div className="lg:col-span-4 flex flex-col gap-2.5">
+              {skillClusters.map((cluster) => {
+                const active = cluster.id === activeClusterId;
+                return (
+                  <button
+                    key={cluster.id}
+                    type="button"
+                    onClick={() => setActiveClusterId(cluster.id)}
+                    className={`p-4 text-left transition-all cursor-pointer ${
+                      active
+                        ? "glass-panel-active border-[var(--accent-primary)]"
+                        : "glass-panel opacity-75 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="font-display text-lg font-bold text-[var(--text-primary)]">
+                      {cluster.label}
+                    </div>
+                    <div className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                      {cluster.subtitle}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Cluster Detail Window */}
+            <div className="lg:col-span-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedCluster.id}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="glass-panel-active p-6 sm:p-8 space-y-4"
+                >
+                  <h3 className="font-display text-xl font-bold text-[var(--text-primary)] pb-3 hairline-b">
+                    {selectedCluster.label} — {selectedCluster.subtitle}
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {selectedCluster.skills.map((sk) => (
+                      <Link
+                        key={sk.name}
+                        href={`/work/${sk.projectSlug}`}
+                        className="p-4 rounded-xl hairline-border bg-[var(--bg-canvas)] hover:border-[var(--accent-primary)] transition-colors space-y-1.5 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
+                            {sk.name}
+                          </span>
+                          <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--accent-primary)]" />
+                        </div>
+                        <div className="font-mono text-[11px] text-[var(--accent-secondary)]">
+                          Used in: {sk.usedIn}
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                          {sk.detail}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. ACHIEVEMENTS ORBIT TIMELINE (Sections 24 & 25) */}
+        <section
+          onMouseEnter={() => setStage("achievements")}
+          className="space-y-8"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="space-y-2">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+                Achievements &amp; Credentials Orbit
+              </h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+                Select a year node to inspect international competition awards and academic benchmarks.
+              </p>
+            </div>
+            <Link
+              href="/achievements"
+              className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.08em] text-[var(--accent-primary)] hover:underline"
+            >
+              <span>Full Credentials Ledger</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-1 gap-2.5">
+              {ORBIT_ACHIEVEMENTS.map((ach, idx) => {
+                const active = idx === activeAchievementIdx;
+                return (
+                  <button
+                    key={ach.id}
+                    type="button"
+                    onClick={() => setActiveAchievementIdx(idx)}
+                    className={`p-4 text-left transition-colors cursor-pointer flex items-center justify-between ${
+                      active
+                        ? "glass-panel-active border-[var(--accent-amber)]"
+                        : "glass-panel opacity-75 hover:opacity-100"
+                    }`}
+                  >
+                    <div>
+                      <div className="font-mono text-xs text-[var(--accent-amber)] tabular-nums">
+                        {ach.year}
+                      </div>
+                      <div className="mt-0.5 font-display text-sm font-bold text-[var(--text-primary)]">
+                        {ach.title}
+                      </div>
+                    </div>
+                    <Award className="h-4 w-4 text-[var(--accent-amber)] shrink-0 hidden sm:block" />
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="lg:col-span-7">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedAchievement.id}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="glass-panel-active p-7 sm:p-9 space-y-4"
+                >
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+                    {selectedAchievement.title}
+                  </h3>
+                  <div className="font-mono text-xs text-[var(--accent-amber)] tabular-nums">
+                    {selectedAchievement.year} · {selectedAchievement.subtitle}
+                  </div>
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                    {selectedAchievement.detail}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. JOURNEY — LIGHTWEIGHT INTERACTIVE PROGRESSION (Section 27) */}
+        <section
+          id="journey"
+          onMouseEnter={() => setStage("journey")}
+          className="scroll-mt-24 space-y-8"
+        >
+          <div className="space-y-2">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+              Engineering Journey
+            </h2>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+              Progression from foundational mathematics and sciences to Artificial Intelligence at Universiti Malaya.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            {journeyNodes.map((node, idx) => {
+              const active = idx === activeJourneyIdx;
+              return (
+                <button
+                  key={node.id}
+                  type="button"
+                  onClick={() => setActiveJourneyIdx(idx)}
+                  className={`p-4 text-left transition-colors cursor-pointer ${
+                    active
+                      ? "glass-panel-active border-[var(--accent-primary)]"
+                      : "glass-panel opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <div className="font-mono text-[11px] text-[var(--accent-primary)] tabular-nums">
+                    {node.step} · {node.year}
+                  </div>
+                  <div className="mt-1 font-display text-sm font-bold text-[var(--text-primary)] line-clamp-1">
+                    {node.title}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedJourney.id}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
+              transition={{ duration: 0.18 }}
+              className="glass-panel p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+            >
+              <div className="space-y-2 max-w-2xl">
+                <h3 className="font-display text-xl font-bold text-[var(--text-primary)]">
+                  {selectedJourney.title} — {selectedJourney.subtitle}
                 </h3>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                  {principle.description}
+                  {selectedJourney.detail}
                 </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. FEATURED TECHNICAL CAPABILITIES (EVIDENCE MATRIX — NO PERCENTAGE BARS) */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-        <div className="max-w-3xl mb-12">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-            Verified Technical Capabilities
-          </h2>
-          <p className="mt-3 text-base text-[var(--text-secondary)]">
-            Every technical claim is mapped directly to the system where it was deployed and the empirical evidence it produced—never arbitrary skill percentage bars.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {capabilityGroups.map((group) => (
-            <div key={group.code} className="surface-card p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 hairline-b">
-                <h3 className="font-display text-lg sm:text-xl font-bold text-[var(--text-primary)]">
-                  {group.domain}
-                </h3>
-                <span className="font-mono text-xs text-[var(--accent-primary)] tabular-nums">
-                  {group.code}
-                </span>
+              <div className="px-4 py-2 rounded-full bg-[var(--accent-secondary-soft)] text-[var(--accent-secondary)] font-mono text-xs font-semibold shrink-0 tabular-nums">
+                {selectedJourney.metric}
               </div>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-                {group.summary}
-              </p>
-
-              <div className="divide-y divide-[var(--border-hairline)] pt-1">
-                {group.items.map((item) => (
-                  <div key={item.technology} className="py-3 space-y-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">
-                        {item.technology}
-                      </span>
-                      <span className="font-mono text-[11px] text-[var(--accent-secondary)]">
-                        {item.whereUsed}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed tabular-nums">
-                      {item.evidence}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. ACHIEVEMENTS & CREDIBILITY LEDGER */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-        <div className="flex flex-wrap items-end justify-between gap-6 mb-12">
-          <div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-              Honours, Awards &amp; Academic Credentials
-            </h2>
-            <p className="mt-3 text-base text-[var(--text-secondary)] max-w-[60ch]">
-              Peer-reviewed international innovation awards and consistent top-tier academic execution across computing, mathematics, and sciences.
-            </p>
-          </div>
-          <Link
-            href="/achievements"
-            className="inline-flex min-h-[44px] items-center gap-2 px-4 hairline-border bg-[var(--bg-surface)] font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
-          >
-            <span>Inspect Full Credentials Ledger</span>
-            <ArrowUpRight className="h-4 w-4 text-[var(--accent-primary)]" aria-hidden="true" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 tabular-nums">
-          {achievements.map((item) => (
-            <div key={item.id} className="surface-card p-5 flex flex-col justify-between space-y-4">
-              <div className="space-y-2.5">
-                <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">
-                  {item.title}
-                </h3>
-                <div className="flex items-center justify-between font-mono text-xs">
-                  <span className="px-2 py-0.5 bg-[var(--accent-primary-soft)] text-[var(--accent-primary)] font-semibold">
-                    {item.metricBadge}
-                  </span>
-                  <span className="text-[var(--text-muted)]">{item.year}</span>
-                </div>
-                <div className="font-mono text-xs text-[var(--text-secondary)]">
-                  {item.organisation}
-                </div>
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                  {item.significance}
-                </p>
-              </div>
-              <div className="pt-3 hairline-t font-mono text-[11px] uppercase text-[var(--text-muted)]">
-                ID: {item.id} · {item.category}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 6. JOURNEY / EXPERIENCE TIMELINE */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-24">
-        <div className="max-w-3xl mb-12">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-            Engineering &amp; Academic Trajectory
-          </h2>
-          <p className="mt-3 text-base text-[var(--text-secondary)]">
-            Progression from foundational sciences and mathematical excellence to international AI innovation awards and formal AI training at Universiti Malaya.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 tabular-nums">
-          {profile.journey.map((step, idx) => (
-            <div key={step.title} className="surface-card p-5 flex flex-col justify-between space-y-4">
-              <div className="space-y-2.5">
-                <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">
-                  <span className="font-mono text-xs text-[var(--accent-primary)] mr-2">
-                    0{idx + 1}
-                  </span>
-                  {step.title}
-                </h3>
-                <div className="font-mono text-xs text-[var(--text-muted)]">
-                  {step.period} · {step.organisation}
-                </div>
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                  {step.summary}
-                </p>
-              </div>
-              <div className="pt-3 hairline-t font-mono text-xs font-semibold text-[var(--accent-secondary)]">
-                {step.highlightMetric}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 7. CONTACT CTA STRIP */}
-      <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-16 lg:py-20">
-        <div className="surface-card p-6 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-8 space-y-3">
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-              Recruiting for AI Engineering, Applied ML, or Research Roles?
-            </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-[62ch]">
-              Inspect the interactive case studies, print the one-page engineering CV, or reach out directly at{" "}
-              <span className="font-mono text-[var(--text-primary)]">{profile.email}</span>.
-            </p>
-          </div>
-          <div className="lg:col-span-4 flex flex-wrap lg:justify-end gap-3">
-            <Link
-              href="/contact"
-              className="inline-flex min-h-[48px] items-center gap-2 px-6 bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.06em] hover:bg-[var(--accent-primary-hover)] transition-colors"
-            >
-              <span>Open Direct Contact Dock</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-            <Link
-              href="/resume"
-              className="inline-flex min-h-[48px] items-center gap-2 px-5 hairline-border bg-[var(--bg-elevated)] text-[var(--text-primary)] font-mono text-xs uppercase tracking-[0.06em]"
-            >
-              <span>View Resume</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+            </motion.div>
+          </AnimatePresence>
+        </section>
+      </div>
     </div>
   );
 }

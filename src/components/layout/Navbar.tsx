@@ -7,11 +7,11 @@ import { Menu, X, Sun, Moon, ArrowUpRight, FileText } from "lucide-react";
 import { profile } from "@/data/profile";
 
 const NAV_ITEMS = [
-  { href: "/work", label: "Work", code: "01" },
-  { href: "/about", label: "About", code: "02" },
-  { href: "/achievements", label: "Credentials", code: "03" },
-  { href: "/resume", label: "Resume", code: "04" },
-  { href: "/contact", label: "Contact", code: "05" },
+  { href: "/work", label: "Work" },
+  { href: "/about", label: "About" },
+  { href: "/#journey", label: "Journey" },
+  { href: "/achievements", label: "Achievements" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Navbar() {
@@ -51,113 +51,93 @@ export function Navbar() {
   };
 
   const isActive = (href: string) => {
+    if (href.startsWith("/#")) return false;
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
-    <header className="sticky top-0 z-50 hairline-b bg-[var(--bg-glass)] backdrop-blur-md no-print">
+    <header className="sticky top-0 z-50 pt-4 px-4 sm:px-6 no-print">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2.5 focus:bg-[var(--accent-primary)] focus:text-white focus:font-mono focus:text-xs focus:uppercase focus:tracking-wider"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2.5 focus:bg-[var(--accent-primary)] focus:text-white focus:font-mono focus:text-xs focus:uppercase focus:tracking-wider focus:rounded-full"
       >
         Skip to main content
       </a>
 
-      <div className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Brand Signature */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="group flex items-center gap-3 py-2 focus-visible:outline-offset-4"
-              aria-label="Kai Sheng — Home"
-            >
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent-primary)] transition-transform duration-200 group-hover:scale-125" />
-              <span className="font-display text-sm sm:text-base font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-                {profile.displayName}
-              </span>
-              <span className="hidden md:inline-block font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-muted)] pl-2 hairline-l">
-                UM · CS (AI)
-              </span>
-            </Link>
-          </div>
+      {/* Compact Floating Glass Navigation Bar */}
+      <div className="mx-auto max-w-[980px] glass-panel px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <Link
+          href="/"
+          className="group flex items-center gap-2.5 py-1.5 focus-visible:outline-offset-4"
+          aria-label="Kai Sheng — Spatial AI Portfolio Home"
+        >
+          <span className="inline-flex h-2 w-2 rounded-full bg-[var(--accent-primary)] transition-transform duration-300 group-hover:scale-125" />
+          <span className="font-display text-sm font-bold tracking-[0.08em] text-[var(--text-primary)]">
+            {profile.displayName}
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`relative px-3.5 py-2 text-sm font-medium transition-colors duration-150 ${
-                    active
-                      ? "text-[var(--text-primary)] bg-[var(--accent-primary-soft)]"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  <span className="font-mono text-[10px] text-[var(--accent-primary)] mr-1.5 tabular-nums">
-                    {item.code}
-                  </span>
-                  {item.label}
-                  {active && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-x-0 bottom-0 h-[2px] bg-[var(--accent-primary)]"
-                    />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Desktop Links */}
+        <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-1">
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-[0.08em] transition-colors duration-200 ${
+                  active
+                    ? "bg-[var(--accent-primary-soft)] text-[var(--accent-primary)] font-medium"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-          {/* Right Status & Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 hairline-border bg-[var(--bg-surface)] text-[11px] font-mono text-[var(--text-secondary)]">
-              <span className="h-2 w-2 rounded-full bg-[var(--accent-secondary)]" aria-hidden="true" />
-              <span>OPEN FOR AI / ML ROLES</span>
-            </div>
+        {/* Right Controls */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/resume"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hairline-border font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <FileText className="h-3.5 w-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
+            <span>CV</span>
+          </Link>
 
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex h-11 w-11 items-center justify-center hairline-border bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full hairline-border text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
 
-            <Link
-              href="/contact"
-              className="hidden sm:inline-flex h-11 items-center gap-2 px-4 bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.06em] hover:bg-[var(--accent-primary-hover)] transition-colors"
-            >
-              <span>Initiate Contact</span>
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              aria-expanded={menuOpen}
-              aria-controls="mobile-nav-drawer"
-              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-              className="inline-flex lg:hidden h-11 w-11 items-center justify-center hairline-border bg-[var(--bg-surface)] text-[var(--text-primary)] cursor-pointer"
-            >
-              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-drawer"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            className="inline-flex md:hidden h-9 w-9 items-center justify-center rounded-full hairline-border text-[var(--text-primary)] cursor-pointer"
+          >
+            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Compact Mobile Floating Sheet */}
       {menuOpen && (
         <nav
           id="mobile-nav-drawer"
           aria-label="Mobile navigation"
-          className="lg:hidden hairline-t bg-[var(--bg-surface)] px-4 pt-3 pb-6"
+          className="md:hidden mx-auto max-w-[980px] mt-2 glass-panel-active p-4 space-y-2"
         >
           <div className="flex flex-col divide-y divide-[var(--border-hairline)]">
             {NAV_ITEMS.map((item) => {
@@ -168,38 +148,33 @@ export function Navbar() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex min-h-[48px] items-center justify-between py-3 px-2 text-base font-medium ${
-                    active ? "text-[var(--accent-primary)]" : "text-[var(--text-primary)]"
+                  className={`flex min-h-[44px] items-center justify-between py-2.5 px-2 font-mono text-xs uppercase tracking-[0.08em] ${
+                    active ? "text-[var(--accent-primary)] font-semibold" : "text-[var(--text-primary)]"
                   }`}
                 >
-                  <span className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
-                      {item.code}
-                    </span>
-                    <span>{item.label}</span>
-                  </span>
+                  <span>{item.label}</span>
                   <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" aria-hidden="true" />
                 </Link>
               );
             })}
           </div>
 
-          <div className="mt-4 pt-4 hairline-t flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/contact"
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 px-4 bg-[var(--accent-primary)] text-white font-mono text-xs font-medium uppercase tracking-[0.06em]"
-            >
-              <span>Contact Kai Sheng</span>
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+          <div className="pt-3 hairline-t flex gap-2">
             <Link
               href="/resume"
               onClick={() => setMenuOpen(false)}
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 px-4 hairline-border bg-[var(--bg-elevated)] text-[var(--text-primary)] font-mono text-xs uppercase tracking-[0.06em]"
+              className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full hairline-border font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-primary)]"
             >
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              <span>Inspect CV / Print</span>
+              <FileText className="h-3.5 w-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
+              <span>CV / Print</span>
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMenuOpen(false)}
+              className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[var(--accent-primary)] text-white font-mono text-xs uppercase tracking-[0.06em]"
+            >
+              <span>Contact</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
         </nav>

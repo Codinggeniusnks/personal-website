@@ -2,103 +2,107 @@
   "nodes": [
     {
       "id": "src/app/globals.css",
-      "lines": 182,
-      "type": "route"
+      "lines": 208
     },
     {
       "id": "src/app/layout.tsx",
-      "lines": 121,
-      "type": "route"
+      "lines": 121
     },
     {
       "id": "src/app/not-found.tsx",
-      "lines": 37,
-      "type": "route"
+      "lines": 37
     },
     {
       "id": "src/app/page.tsx",
-      "lines": 439,
-      "type": "route"
+      "lines": 672
     },
     {
       "id": "src/app/robots.ts",
-      "lines": 13,
-      "type": "route"
+      "lines": 13
     },
     {
       "id": "src/app/sitemap.ts",
-      "lines": 25,
-      "type": "route"
+      "lines": 25
     },
     {
       "id": "src/app/about/page.tsx",
-      "lines": 169,
-      "type": "route"
+      "lines": 104
     },
     {
       "id": "src/app/achievements/page.tsx",
-      "lines": 113,
-      "type": "route"
+      "lines": 115
     },
     {
       "id": "src/app/contact/page.tsx",
-      "lines": 254,
-      "type": "route"
+      "lines": 114
     },
     {
       "id": "src/app/resume/page.tsx",
-      "lines": 211,
-      "type": "route"
+      "lines": 211
     },
     {
       "id": "src/app/work/page.tsx",
-      "lines": 217,
-      "type": "route"
+      "lines": 168
     },
     {
       "id": "src/app/work/[slug]/page.tsx",
-      "lines": 474,
-      "type": "route"
+      "lines": 54
     },
     {
       "id": "src/components/instruments/CaseStudySimulators.tsx",
-      "lines": 660,
-      "type": "component"
+      "lines": 654
     },
     {
       "id": "src/components/instruments/HeroTelemetryBench.tsx",
-      "lines": 538,
-      "type": "component"
+      "lines": 538
     },
     {
       "id": "src/components/layout/Footer.tsx",
-      "lines": 200,
-      "type": "component"
+      "lines": 96
     },
     {
       "id": "src/components/layout/Navbar.tsx",
-      "lines": 209,
-      "type": "component"
+      "lines": 184
+    },
+    {
+      "id": "src/components/spatial/ProgressiveCaseStudy.tsx",
+      "lines": 407
+    },
+    {
+      "id": "src/components/spatial/SpatialAiCanvas.tsx",
+      "lines": 330
     },
     {
       "id": "src/data/achievements.ts",
-      "lines": 206,
-      "type": "data"
+      "lines": 206
     },
     {
       "id": "src/data/capabilities.ts",
-      "lines": 196,
-      "type": "data"
+      "lines": 196
+    },
+    {
+      "id": "src/data/education.ts",
+      "lines": 47
+    },
+    {
+      "id": "src/data/journey.ts",
+      "lines": 57
     },
     {
       "id": "src/data/profile.ts",
-      "lines": 174,
-      "type": "data"
+      "lines": 174
     },
     {
       "id": "src/data/projects.ts",
-      "lines": 869,
-      "type": "data"
+      "lines": 869
+    },
+    {
+      "id": "src/data/skills.ts",
+      "lines": 126
+    },
+    {
+      "id": "src/data/socialLinks.ts",
+      "lines": 46
     }
   ],
   "edges": [
@@ -124,15 +128,15 @@
     },
     {
       "source": "src/app/page.tsx",
-      "target": "@/data/capabilities"
+      "target": "@/data/skills"
     },
     {
       "source": "src/app/page.tsx",
-      "target": "@/data/achievements"
+      "target": "@/data/journey"
     },
     {
       "source": "src/app/page.tsx",
-      "target": "@/components/instruments/HeroTelemetryBench"
+      "target": "@/components/spatial/SpatialAiCanvas"
     },
     {
       "source": "src/app/sitemap.ts",
@@ -144,15 +148,27 @@
     },
     {
       "source": "src/app/about/page.tsx",
-      "target": "@/data/capabilities"
+      "target": "@/data/education"
+    },
+    {
+      "source": "src/app/about/page.tsx",
+      "target": "@/components/spatial/SpatialAiCanvas"
     },
     {
       "source": "src/app/achievements/page.tsx",
       "target": "@/data/achievements"
     },
     {
+      "source": "src/app/achievements/page.tsx",
+      "target": "@/components/spatial/SpatialAiCanvas"
+    },
+    {
       "source": "src/app/contact/page.tsx",
       "target": "@/data/profile"
+    },
+    {
+      "source": "src/app/contact/page.tsx",
+      "target": "@/components/spatial/SpatialAiCanvas"
     },
     {
       "source": "src/app/resume/page.tsx",
@@ -175,12 +191,16 @@
       "target": "@/data/projects"
     },
     {
+      "source": "src/app/work/page.tsx",
+      "target": "@/components/spatial/SpatialAiCanvas"
+    },
+    {
       "source": "src/app/work/[slug]/page.tsx",
       "target": "@/data/projects"
     },
     {
       "source": "src/app/work/[slug]/page.tsx",
-      "target": "@/components/instruments/CaseStudySimulators"
+      "target": "@/components/spatial/ProgressiveCaseStudy"
     },
     {
       "source": "src/components/layout/Footer.tsx",
@@ -189,6 +209,18 @@
     {
       "source": "src/components/layout/Navbar.tsx",
       "target": "@/data/profile"
+    },
+    {
+      "source": "src/components/spatial/ProgressiveCaseStudy.tsx",
+      "target": "@/data/projects"
+    },
+    {
+      "source": "src/components/spatial/ProgressiveCaseStudy.tsx",
+      "target": "./SpatialAiCanvas"
+    },
+    {
+      "source": "src/components/spatial/ProgressiveCaseStudy.tsx",
+      "target": "@/components/instruments/CaseStudySimulators"
     }
   ]
 }

@@ -1,658 +1,652 @@
 "use client";
 
 import React, { useState } from "react";
-import { Activity, AlertTriangle, CheckCircle2, Cpu, Database, Radio, Server, TrendingUp, Wifi, WifiOff } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Activity, Cpu, TrendingUp, ChevronRight } from "lucide-react";
+
+const CARDIOXY_NODES = [
+  {
+    id: "AI",
+    label: "AI PREDICTION",
+    angle: -90,
+    summary: "Detects worsening physiological trends before emergency thresholds are crossed.",
+    modelLogic:
+      "Evaluates continuous rate-of-change derivatives (dHR/dt and dSpO₂/dt) across a sliding telemetry window on the ESP32. Dispatches pre-threshold warnings before hard clinical cutoffs (HR > 100 bpm, HR < 60 bpm, SpO₂ < 90%) are breached.",
+    hardware: "ESP32 Edge Inference + Sliding Window Derivative Engine",
+  },
+  {
+    id: "SENSOR",
+    label: "SENSOR",
+    angle: -30,
+    summary: "Optical photoplethysmography (PPG) acquisition with local OLED readout.",
+    modelLogic:
+      "Samples dual-wavelength Red/IR absorption via MAX30102/MAX30105 over I²C with motion-artifact filtering and instant SSD1306 OLED patient display.",
+    hardware: "MAX30102 / MAX30105 + SSD1306 OLED + ESP32",
+  },
+  {
+    id: "CLOUD",
+    label: "CLOUD",
+    angle: 30,
+    summary: "Real-time clinical synchronisation to cloud spreadsheets and historical records.",
+    modelLogic:
+      "In Online Mode, physiological packets stream over HTTPS to Google Sheets for longitudinal patient tracking and clinician audit trails.",
+    hardware: "ESP32 Wi-Fi + Google Sheets Webhook Sync",
+  },
+  {
+    id: "DOCTOR",
+    label: "DOCTOR",
+    angle: 90,
+    summary: "Live remote monitoring dashboard for clinicians and family caregivers.",
+    modelLogic:
+      "Surfaces both real-time HR/SpO₂ waveforms and the active operating mode (Manual, Online, or Offline ESP-NOW failover) with zero ambiguity.",
+    hardware: "Live Telemetry Dashboard + Historical Ledger",
+  },
+  {
+    id: "ALERT",
+    label: "EMERGENCY ALERT",
+    angle: 150,
+    summary: "Multi-channel escalation via Telegram messages and automated phone calls.",
+    modelLogic:
+      "When HR > 100 bpm, HR < 60 bpm, or SpO₂ < 90% occurs, triggers local acoustic alarm, instant Telegram bot dispatch, and automated voice telephony.",
+    hardware: "Telegram Bot API + Automated Phone Call Trigger",
+  },
+  {
+    id: "OFFLINE",
+    label: "OFFLINE BACKUP",
+    angle: 210,
+    summary: "Zero-router ESP-NOW peer relay and hardware-timestamped SD persistence.",
+    modelLogic:
+      "When Wi-Fi drops, telemetry automatically fails over to ESP-NOW 2.4GHz peer frames → Wemos D1 R1 → Arduino UNO + DS1302 RTC + MicroSD card.",
+    hardware: "ESP-NOW + Wemos D1 R1 + Arduino UNO + DS1302 RTC + SD",
+  },
+] as const;
 
 export function CardioxyInteractiveLab() {
-  const [mode, setMode] = useState<"MANUAL" | "ONLINE" | "OFFLINE">("ONLINE");
-  const [hr, setHr] = useState<number>(94);
-  const [spo2, setSpo2] = useState<number>(92);
-  const [trendRising, setTrendRising] = useState<boolean>(true);
+  const prefersReducedMotion = useReducedMotion();
+  const [selectedNodeId, setSelectedNodeId] = useState<string>("AI");
+  const [showLogic, setShowLogic] = useState<boolean>(false);
+  const [mode, setMode] = useState<"ONLINE" | "OFFLINE" | "MANUAL">("ONLINE");
 
-  const isCriticalBreach = hr > 100 || hr < 60 || spo2 < 90;
-  const isPredictiveWarning =
-    !isCriticalBreach && trendRising && (hr >= 90 || spo2 <= 93);
-
-  const systemState = isCriticalBreach
-    ? {
-        label: "CRITICAL THRESHOLD BREACH (HR > 100 | HR < 60 | SpO₂ < 90%)",
-        color: "text-[var(--accent-primary)]",
-        bg: "bg-[var(--accent-primary-soft)]",
-        action:
-          mode === "ONLINE"
-            ? "Immediate hardware buzzer + Telegram caregiver dispatch + Automated Phone Call + Google Sheets cloud row + SD backup."
-            : mode === "OFFLINE"
-            ? "Immediate hardware buzzer + ESP-NOW packet to Wemos D1 R1 → Arduino UNO + DS1302 RTC timestamped SD fault log."
-            : "Immediate local buzzer + OLED high-contrast emergency overlay.",
-      }
-    : isPredictiveWarning
-    ? {
-        label: "PREDICTIVE EARLY WARNING (DETERIORATING TRAJECTORY DETECTED)",
-        color: "text-[var(--accent-amber)]",
-        bg: "bg-[var(--accent-amber-soft)]",
-        action:
-          "Worsening physiological slope identified BEFORE hard threshold breach. Early advisory sent so intervention happens ahead of crisis.",
-      }
-    : {
-        label: "NOMINAL PHYSIOLOGICAL TELEMETRY",
-        color: "text-[var(--accent-secondary)]",
-        bg: "bg-[var(--accent-secondary-soft)]",
-        action:
-          "Continuous MAX30102 optical acquisition and multi-node logging operating within safe clinical bounds.",
-      };
+  const activeNode =
+    CARDIOXY_NODES.find((n) => n.id === selectedNodeId) || CARDIOXY_NODES[0];
 
   return (
-    <div className="surface-card hairline-border p-5 sm:p-8 space-y-6">
+    <div className="glass-workspace p-6 sm:p-8 space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 hairline-b">
         <div className="flex items-center gap-2.5">
           <Activity className="h-5 w-5 text-[var(--accent-primary)]" aria-hidden="true" />
           <h3 className="font-display text-lg sm:text-xl font-bold text-[var(--text-primary)]">
-            Interactive Multi-MCU Telemetry &amp; Fault-Injection Simulator
+            CardiOxy Pro — Spatial Architecture Constellation
           </h3>
         </div>
-        <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
-          ISIC-WOU24 GOLD · BIICC 2026 BEST AI TECH + GOLD
-        </span>
+        <div className="flex items-center gap-1.5" role="group" aria-label="Operating Mode">
+          {(
+            [
+              { id: "ONLINE", label: "Online (Wi-Fi)" },
+              { id: "OFFLINE", label: "Offline (ESP-NOW)" },
+              { id: "MANUAL", label: "Manual Mode" },
+            ] as const
+          ).map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setMode(m.id)}
+              className={`px-3 py-1.5 rounded-full font-mono text-xs transition-colors cursor-pointer ${
+                mode === m.id
+                  ? "bg-[var(--accent-primary)] text-white"
+                  : "hairline-border text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Controls Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 space-y-5 p-4 hairline-border bg-[var(--bg-canvas)]">
-          <div>
-            <div className="font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-muted)] mb-2">
-              1. Operating Mode Architecture
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  { id: "MANUAL", label: "Manual Mode" },
-                  { id: "ONLINE", label: "Online (Wi-Fi)" },
-                  { id: "OFFLINE", label: "Offline (ESP-NOW)" },
-                ] as const
-              ).map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMode(m.id)}
-                  className={`py-2.5 px-2 font-mono text-xs hairline-border cursor-pointer transition-colors ${
-                    mode === m.id
-                      ? "bg-[var(--accent-primary)] text-white"
-                      : "bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Spatial Constellation + Single Progressive Glass Window */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left 7 Columns: Interactive Spatial Device & 6 Orbiting Nodes */}
+        <div className="lg:col-span-7 relative flex items-center justify-center min-h-[340px] sm:min-h-[380px] glass-panel p-6">
+          <svg
+            viewBox="0 0 400 320"
+            className="w-full max-w-[440px] h-auto overflow-visible"
+            role="img"
+            aria-label="CardiOxy Pro spatial architecture network"
+          >
+            {CARDIOXY_NODES.map((node) => {
+              const rad = (node.angle * Math.PI) / 180;
+              const nx = 200 + Math.cos(rad) * 128;
+              const ny = 160 + Math.sin(rad) * 108;
+              const isSelected = node.id === selectedNodeId;
+              return (
+                <g key={node.id}>
+                  <line
+                    x1={200}
+                    y1={160}
+                    x2={nx}
+                    y2={ny}
+                    stroke={isSelected ? "var(--accent-primary)" : "var(--border-strong)"}
+                    strokeWidth={isSelected ? "2" : "1"}
+                    strokeDasharray={mode === "OFFLINE" && node.id === "OFFLINE" ? "none" : "4 4"}
+                  />
+                  <g
+                    onClick={() => {
+                      setSelectedNodeId(node.id);
+                      setShowLogic(false);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <circle
+                      cx={nx}
+                      cy={ny}
+                      r={isSelected ? 22 : 16}
+                      fill={isSelected ? "var(--accent-primary)" : "var(--bg-canvas)"}
+                      stroke="var(--accent-primary)"
+                      strokeWidth={isSelected ? "2.5" : "1.2"}
+                    />
+                    <text
+                      x={nx}
+                      y={ny + 34}
+                      textAnchor="middle"
+                      fill="var(--text-primary)"
+                      fontSize="10"
+                      fontFamily="var(--font-mono)"
+                    >
+                      {node.label}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
 
-          <div className="space-y-4 pt-2 hairline-t">
-            <div>
-              <div className="flex justify-between font-mono text-xs mb-1.5 tabular-nums">
-                <label htmlFor="sim-hr" className="text-[var(--text-secondary)]">
-                  Simulated Heart Rate (bpm)
-                </label>
-                <span className="font-bold text-[var(--text-primary)]">{hr} bpm</span>
-              </div>
-              <input
-                id="sim-hr"
-                type="range"
-                min={48}
-                max={130}
-                value={hr}
-                onChange={(e) => setHr(Number(e.target.value))}
-                className="w-full accent-[var(--accent-primary)] cursor-pointer"
-              />
-              <div className="flex justify-between font-mono text-[10px] text-[var(--text-muted)] tabular-nums">
-                <span>Bradycardia &lt; 60</span>
-                <span>Nominal 60–100</span>
-                <span>Tachycardia &gt; 100</span>
-              </div>
-            </div>
+            {/* Central Device Core */}
+            <circle
+              cx={200}
+              cy={160}
+              r={36}
+              fill="var(--bg-canvas)"
+              stroke="var(--accent-primary)"
+              strokeWidth="2"
+            />
+            <text
+              x={200}
+              y={156}
+              textAnchor="middle"
+              fill="var(--text-primary)"
+              fontSize="10"
+              fontWeight="bold"
+              fontFamily="var(--font-display)"
+            >
+              CARDIOXY
+            </text>
+            <text
+              x={200}
+              y={170}
+              textAnchor="middle"
+              fill="var(--accent-primary)"
+              fontSize="8.5"
+              fontFamily="var(--font-mono)"
+            >
+              {mode}
+            </text>
+          </svg>
 
-            <div>
-              <div className="flex justify-between font-mono text-xs mb-1.5 tabular-nums">
-                <label htmlFor="sim-spo2" className="text-[var(--text-secondary)]">
-                  Simulated SpO₂ Saturation (%)
-                </label>
-                <span className="font-bold text-[var(--text-primary)]">{spo2}%</span>
-              </div>
-              <input
-                id="sim-spo2"
-                type="range"
-                min={84}
-                max={100}
-                value={spo2}
-                onChange={(e) => setSpo2(Number(e.target.value))}
-                className="w-full accent-[var(--accent-primary)] cursor-pointer"
-              />
-              <div className="flex justify-between font-mono text-[10px] text-[var(--text-muted)] tabular-nums">
-                <span>Hypoxemia &lt; 90%</span>
-                <span>Watch 90–93%</span>
-                <span>Nominal 95–100%</span>
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-between">
-              <span className="font-mono text-xs text-[var(--text-secondary)]">
-                Trajectory Derivative (dHR/dt &amp; dSpO₂/dt)
-              </span>
+          {/* Accessible Node Pill Selector for Keyboard & Touch */}
+          <div className="absolute bottom-3 inset-x-3 flex flex-wrap justify-center gap-1.5">
+            {CARDIOXY_NODES.map((node) => (
               <button
+                key={node.id}
                 type="button"
-                onClick={() => setTrendRising((prev) => !prev)}
-                className={`px-3 py-1.5 font-mono text-xs hairline-border cursor-pointer ${
-                  trendRising
-                    ? "bg-[var(--accent-amber-soft)] text-[var(--accent-amber)]"
-                    : "bg-[var(--bg-surface)] text-[var(--text-muted)]"
+                onClick={() => {
+                  setSelectedNodeId(node.id);
+                  setShowLogic(false);
+                }}
+                className={`px-2.5 py-1 rounded-full font-mono text-[10px] uppercase cursor-pointer transition-colors ${
+                  selectedNodeId === node.id
+                    ? "bg-[var(--accent-primary)] text-white"
+                    : "bg-[var(--bg-canvas)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hairline-border"
                 }`}
               >
-                {trendRising ? "Worsening Slope: ON" : "Slope: Flat"}
+                {node.label}
               </button>
-            </div>
-          </div>
-
-          <div className="pt-2 hairline-t flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setHr(74);
-                setSpo2(98);
-                setTrendRising(false);
-              }}
-              className="px-2.5 py-1.5 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
-            >
-              Preset: Healthy Baseline
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setHr(95);
-                setSpo2(92);
-                setTrendRising(true);
-              }}
-              className="px-2.5 py-1.5 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--accent-amber)] cursor-pointer"
-            >
-              Preset: Pre-Threshold Drift
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setHr(114);
-                setSpo2(87);
-                setTrendRising(true);
-              }}
-              className="px-2.5 py-1.5 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--accent-primary)] cursor-pointer"
-            >
-              Preset: Emergency Breach
-            </button>
+            ))}
           </div>
         </div>
 
-        {/* Hardware Node Bus Visualization */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-5 hairline-border bg-[var(--bg-canvas)] space-y-5">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className={`px-2.5 py-1 font-mono text-xs font-semibold ${systemState.color} ${systemState.bg}`}>
-                {systemState.label}
-              </span>
-              <span className="font-mono text-xs text-[var(--text-muted)] flex items-center gap-1.5">
-                {mode === "ONLINE" ? (
-                  <>
-                    <Wifi className="h-3.5 w-3.5 text-[var(--accent-secondary)]" />
-                    <span>Wi-Fi Cloud Active</span>
-                  </>
-                ) : mode === "OFFLINE" ? (
-                  <>
-                    <Radio className="h-3.5 w-3.5 text-[var(--accent-amber)]" />
-                    <span>ESP-NOW Peer Bus</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                    <span>Air-Gapped Manual</span>
-                  </>
-                )}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-              {systemState.action}
-            </p>
-          </div>
-
-          {/* 4-Stage Hardware Node Matrix */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 tabular-nums">
-            <div className="p-3.5 hairline-border bg-[var(--bg-surface)]">
-              <div className="font-mono text-[10px] uppercase text-[var(--accent-primary)]">
-                Node 01 · Edge Acquisition
-              </div>
-              <div className="mt-1 font-display text-sm font-semibold text-[var(--text-primary)]">
-                ESP32 + MAX30102 + OLED
-              </div>
-              <div className="mt-1.5 font-mono text-xs text-[var(--text-secondary)]">
-                PPG Red/IR active · HR {hr} bpm · SpO₂ {spo2}%
-              </div>
-            </div>
-
-            <div
-              className={`p-3.5 hairline-border transition-opacity ${
-                mode === "OFFLINE" || mode === "ONLINE"
-                  ? "bg-[var(--bg-surface)] opacity-100"
-                  : "bg-[var(--bg-canvas)] opacity-50"
-              }`}
+        {/* Right 5 Columns: Single Floating Glass Information Window */}
+        <div className="lg:col-span-5">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeNode.id}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="glass-panel-active p-6 space-y-5"
             >
-              <div className="font-mono text-[10px] uppercase text-[var(--accent-amber)]">
-                Node 02 · Offline Relay Bus
+              <div className="space-y-2">
+                <h4 className="font-display text-xl font-bold text-[var(--text-primary)]">
+                  {activeNode.label}
+                </h4>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {activeNode.summary}
+                </p>
               </div>
-              <div className="mt-1 font-display text-sm font-semibold text-[var(--text-primary)]">
-                ESP-NOW → Wemos D1 R1
-              </div>
-              <div className="mt-1.5 font-mono text-xs text-[var(--text-secondary)]">
-                {mode === "OFFLINE"
-                  ? "ACTIVE: Zero-router 2.4GHz peer frame transfer"
-                  : mode === "ONLINE"
-                  ? "STANDBY: Ready for automatic Wi-Fi failover"
-                  : "DISABLED IN MANUAL MODE"}
-              </div>
-            </div>
 
-            <div
-              className={`p-3.5 hairline-border transition-opacity ${
-                mode !== "MANUAL" ? "bg-[var(--bg-surface)] opacity-100" : "bg-[var(--bg-canvas)] opacity-50"
-              }`}
-            >
-              <div className="font-mono text-[10px] uppercase text-[var(--accent-secondary)]">
-                Node 03 · Black-Box Persistence
+              <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)] font-mono text-xs text-[var(--text-secondary)] tabular-nums">
+                Safety Boundaries: HR &gt; 100 bpm · HR &lt; 60 bpm · SpO₂ &lt; 90%
               </div>
-              <div className="mt-1 font-display text-sm font-semibold text-[var(--text-primary)]">
-                Arduino UNO + DS1302 RTC + SD
-              </div>
-              <div className="mt-1.5 font-mono text-xs text-[var(--text-secondary)]">
-                {mode !== "MANUAL"
-                  ? "WRITING: Hardware RTC timestamped CSV audit trail"
-                  : "LOCAL DISPLAY ONLY"}
-              </div>
-            </div>
 
-            <div
-              className={`p-3.5 hairline-border transition-opacity ${
-                mode === "ONLINE" ? "bg-[var(--bg-surface)] opacity-100" : "bg-[var(--bg-canvas)] opacity-50"
-              }`}
-            >
-              <div className="font-mono text-[10px] uppercase text-[var(--accent-primary)]">
-                Node 04 · Cloud &amp; Escalation
-              </div>
-              <div className="mt-1 font-display text-sm font-semibold text-[var(--text-primary)]">
-                Google Sheets + Telegram + Call
-              </div>
-              <div className="mt-1.5 font-mono text-xs text-[var(--text-secondary)]">
-                {mode === "ONLINE"
-                  ? isCriticalBreach
-                    ? "DISPATCHED: Telegram + Automated Voice Call"
-                    : isPredictiveWarning
-                    ? "DISPATCHED: Early-Warning Telegram Advisory"
-                    : "STREAMING: Real-time Google Sheets telemetry"
-                  : "QUEUED ON SD CARD UNTIL WI-FI RESTORED"}
-              </div>
-            </div>
-          </div>
+              <button
+                type="button"
+                onClick={() => setShowLogic((prev) => !prev)}
+                aria-expanded={showLogic}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent-primary-soft)] text-[var(--accent-primary)] font-mono text-xs uppercase tracking-[0.06em] cursor-pointer"
+              >
+                <span>{showLogic ? "Hide Model Logic" : "Explore Model Logic"}</span>
+                <ChevronRight
+                  className={`h-3.5 w-3.5 transition-transform ${showLogic ? "rotate-90" : ""}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {showLogic && (
+                <div className="pt-3 hairline-t space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <p>{activeNode.modelLogic}</p>
+                  <p className="font-mono text-[11px] text-[var(--accent-secondary)]">
+                    Hardware Bus: {activeNode.hardware}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
   );
 }
 
-export function FoodResilienceInteractiveLab() {
-  const [horizon, setHorizon] = useState<"1d" | "3d" | "7d" | "14d" | "21d" | "30d">("14d");
-  const [model, setModel] = useState<"LightGBM" | "CatBoost" | "XGBoost">("LightGBM");
-  const [currentInventory, setCurrentInventory] = useState<number>(1800);
+const FOOD_STAGES = [
+  {
+    id: "DEMAND",
+    step: "01",
+    label: "DEMAND",
+    visualState: "Raw Multi-Source Signal Ingestion",
+    summary:
+      "Aligns historical POS transactions with DOSM PriceCatcher, CPI, weather, holidays, and fuel price series using publication-lag-aware point-in-time joins.",
+  },
+  {
+    id: "FORECAST",
+    step: "02",
+    label: "FORECAST",
+    visualState: "Direct Multi-Horizon Trajectory (1d–30d)",
+    summary:
+      "Trains dedicated LightGBM, CatBoost, and XGBoost estimators across 6 horizons (1, 3, 7, 14, 21, 30 days) validated via expanding walk-forward splits.",
+  },
+  {
+    id: "PRICE",
+    step: "03",
+    label: "PRICE",
+    visualState: "Wholesale & Retail Price Drift Detection",
+    summary:
+      "Forecasts upcoming procurement cost volatility alongside unit volume so buyers know when to lock supplier pricing ahead of seasonal spikes.",
+  },
+  {
+    id: "INVENTORY",
+    step: "04",
+    label: "INVENTORY",
+    visualState: "Days-of-Stock Coverage & Spoilage Guard",
+    summary:
+      "Translates predicted demand into real-time days-of-stock buffers, balancing stockout prevention against perishable food waste (UN SDG 12).",
+  },
+  {
+    id: "ACTION",
+    step: "05",
+    label: "ACTION",
+    visualState: "Calibrated Procurement Recommendation",
+    summary:
+      "Emits a single actionable replenishment quantity and reorder timing window for store operators without overwhelming them with six simultaneous charts.",
+  },
+] as const;
 
-  const dailyDemandByHorizon = {
-    "1d": 140,
-    "3d": 144,
-    "7d": 148,
-    "14d": 155,
-    "21d": 162,
-    "30d": 168,
+export function FoodResilienceInteractiveLab() {
+  const prefersReducedMotion = useReducedMotion();
+  const [activeStageIdx, setActiveStageIdx] = useState<number>(1);
+  const [horizon, setHorizon] = useState<"1d" | "3d" | "7d" | "14d" | "21d" | "30d">("14d");
+
+  const activeStage = FOOD_STAGES[activeStageIdx];
+
+  const horizonMetrics = {
+    "1d": { demand: "140 units", daysOfStock: "11.4d", model: "LightGBM", recommendation: "Hold current stock; buffer healthy." },
+    "3d": { demand: "432 units", daysOfStock: "8.9d", model: "LightGBM", recommendation: "Standard replenishment cycle active." },
+    "7d": { demand: "1,036 units", daysOfStock: "6.2d", model: "CatBoost", recommendation: "Stage weekly supplier order within 48h." },
+    "14d": { demand: "2,170 units", daysOfStock: "3.8d", model: "LightGBM + CatBoost", recommendation: "Order +420 units to protect 5-day safety floor." },
+    "21d": { demand: "3,402 units", daysOfStock: "2.7d", model: "XGBoost + LightGBM", recommendation: "Pre-book festive allocation to avoid price surge." },
+    "30d": { demand: "5,040 units", daysOfStock: "2.1d", model: "XGBoost", recommendation: "Lock 30-day forward supply contract." },
   }[horizon];
 
-  const horizonDays = parseInt(horizon.replace("d", ""), 10);
-  const modelBiasFactor = model === "LightGBM" ? 1.0 : model === "CatBoost" ? 0.98 : 1.03;
-  const projectedTotalDemand = Math.round(dailyDemandByHorizon * horizonDays * modelBiasFactor);
-  const daysOfStock = Number((currentInventory / (dailyDemandByHorizon * modelBiasFactor)).toFixed(1));
-  const netBalance = currentInventory - projectedTotalDemand;
-
   return (
-    <div className="surface-card hairline-border p-5 sm:p-8 space-y-6">
+    <div className="glass-workspace p-6 sm:p-8 space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 hairline-b">
         <div className="flex items-center gap-2.5">
           <TrendingUp className="h-5 w-5 text-[var(--accent-secondary)]" aria-hidden="true" />
           <h3 className="font-display text-lg sm:text-xl font-bold text-[var(--text-primary)]">
-            Interactive Multi-Horizon Forecast &amp; Days-of-Stock Decision Lab
+            FoodResilience — Spatial Flow (DEMAND → FORECAST → PRICE → INVENTORY → ACTION)
           </h3>
         </div>
-        <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
-          CHRONOLOGICAL HOLDOUT: 2024-10-01 TO 2024-12-31
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Forecast Horizon">
+          {(["1d", "3d", "7d", "14d", "21d", "30d"] as const).map((h) => (
+            <button
+              key={h}
+              type="button"
+              onClick={() => setHorizon(h)}
+              className={`px-3 py-1 rounded-full font-mono text-xs tabular-nums transition-colors cursor-pointer ${
+                horizon === h
+                  ? "bg-[var(--accent-secondary)] text-slate-950 font-semibold"
+                  : "hairline-border text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              +{h}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 space-y-5 p-4 hairline-border bg-[var(--bg-canvas)]">
-          <div>
-            <div className="font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-muted)] mb-2">
-              1. Direct Forecast Horizon (1d to 30d)
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-2">
-              {(["1d", "3d", "7d", "14d", "21d", "30d"] as const).map((h) => (
-                <button
-                  key={h}
-                  type="button"
-                  onClick={() => setHorizon(h)}
-                  className={`py-2 px-3 font-mono text-xs hairline-border cursor-pointer tabular-nums ${
-                    horizon === h
-                      ? "bg-[var(--accent-secondary)] text-white"
-                      : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
-                  }`}
-                >
-                  +{h}
-                </button>
-              ))}
+      {/* 5-Stage Spatial Flow Selector */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {FOOD_STAGES.map((st, idx) => {
+          const active = idx === activeStageIdx;
+          return (
+            <button
+              key={st.id}
+              type="button"
+              onClick={() => setActiveStageIdx(idx)}
+              className={`p-3.5 rounded-xl text-left transition-colors cursor-pointer ${
+                active
+                  ? "glass-panel-active border-[var(--accent-secondary)]"
+                  : "glass-panel opacity-70 hover:opacity-100"
+              }`}
+            >
+              <div className="font-mono text-[10px] text-[var(--accent-secondary)] tabular-nums">
+                STAGE {st.step}
+              </div>
+              <div className="mt-1 font-display text-sm font-bold text-[var(--text-primary)]">
+                {st.label}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Single Focused Stage Visualization Window */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${activeStage.id}-${horizon}`}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+          transition={{ duration: 0.2 }}
+          className="glass-panel-active p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center"
+        >
+          <div className="lg:col-span-7 space-y-3">
+            <h4 className="font-display text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
+              {activeStage.step} · {activeStage.label} — {activeStage.visualState}
+            </h4>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+              {activeStage.summary}
+            </p>
+            <div className="pt-2 font-mono text-xs text-[var(--accent-secondary)]">
+              Actionable Output (+{horizon}): {horizonMetrics.recommendation}
             </div>
           </div>
 
-          <div className="pt-2 hairline-t">
-            <div className="font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-muted)] mb-2">
-              2. Gradient Boosted Estimator
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {(["LightGBM", "CatBoost", "XGBoost"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setModel(m)}
-                  className={`py-2 px-2 font-mono text-xs hairline-border cursor-pointer ${
-                    model === m
-                      ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--accent-secondary)]"
-                      : "bg-[var(--bg-surface)] text-[var(--text-muted)]"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-2 hairline-t">
-            <div className="flex justify-between font-mono text-xs mb-1.5 tabular-nums">
-              <label htmlFor="sim-inventory" className="text-[var(--text-secondary)]">
-                Current On-Hand Stock (Units)
-              </label>
-              <span className="font-bold text-[var(--text-primary)]">
-                {currentInventory.toLocaleString()} units
-              </span>
-            </div>
-            <input
-              id="sim-inventory"
-              type="range"
-              min={300}
-              max={6000}
-              step={100}
-              value={currentInventory}
-              onChange={(e) => setCurrentInventory(Number(e.target.value))}
-              className="w-full accent-[var(--accent-secondary)] cursor-pointer"
-            />
-          </div>
-        </div>
-
-        <div className="lg:col-span-7 p-4 sm:p-5 hairline-border bg-[var(--bg-canvas)] flex flex-col justify-between space-y-5 tabular-nums">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 hairline-border bg-[var(--bg-surface)]">
+          <div className="lg:col-span-5 grid grid-cols-3 gap-3 tabular-nums">
+            <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)]">
               <div className="font-mono text-[10px] uppercase text-[var(--text-muted)]">
                 Projected +{horizon} Demand
               </div>
-              <div className="mt-1 font-display text-2xl font-bold text-[var(--text-primary)]">
-                {projectedTotalDemand.toLocaleString()} <span className="text-xs font-mono font-normal">units</span>
+              <div className="mt-1 font-display text-lg font-bold text-[var(--text-primary)]">
+                {horizonMetrics.demand}
               </div>
             </div>
-
-            <div className="p-3.5 hairline-border bg-[var(--bg-surface)]">
+            <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)]">
               <div className="font-mono text-[10px] uppercase text-[var(--text-muted)]">
-                Days-of-Stock Coverage
+                Days of Stock
               </div>
-              <div
-                className={`mt-1 font-display text-2xl font-bold ${
-                  daysOfStock < horizonDays ? "text-[var(--accent-primary)]" : "text-[var(--accent-secondary)]"
-                }`}
-              >
-                {daysOfStock} days
+              <div className="mt-1 font-display text-lg font-bold text-[var(--accent-secondary)]">
+                {horizonMetrics.daysOfStock}
               </div>
             </div>
-
-            <div className="p-3.5 hairline-border bg-[var(--bg-surface)]">
+            <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)]">
               <div className="font-mono text-[10px] uppercase text-[var(--text-muted)]">
-                End-of-Horizon Balance
+                Estimator
               </div>
-              <div
-                className={`mt-1 font-display text-2xl font-bold ${
-                  netBalance < 0 ? "text-[var(--accent-primary)]" : "text-[var(--text-primary)]"
-                }`}
-              >
-                {netBalance >= 0 ? `+${netBalance.toLocaleString()}` : netBalance.toLocaleString()}
+              <div className="mt-1 font-mono text-xs font-semibold text-[var(--text-primary)]">
+                {horizonMetrics.model}
               </div>
             </div>
           </div>
-
-          <div className="p-4 hairline-border bg-[var(--bg-surface)] space-y-2">
-            <div className="font-mono text-xs uppercase text-[var(--accent-secondary)]">
-              Operational Procurement Recommendation ({model} · +{horizon} Horizon)
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-              {netBalance < 0
-                ? `STOCKOUT WARNING: Projected ${horizon} demand exceeds current inventory by ${Math.abs(
-                    netBalance
-                  ).toLocaleString()} units. Trigger immediate replenishment order of at least ${(
-                    Math.abs(netBalance) + 350
-                  ).toLocaleString()} units to restore a 2.5-day safety buffer.`
-                : `BUFFER ADEQUATE: Current stock covers the ${horizon} forecast window with ${netBalance.toLocaleString()} units remaining (${daysOfStock} days of stock). Next scheduled review at T+24h.`}
-            </p>
-          </div>
-
-          <div className="text-xs font-mono text-[var(--text-muted)] flex flex-wrap justify-between gap-2 pt-2 hairline-t">
-            <span>Validation: Expanding Walk-Forward CV</span>
-            <span>Leakage Guard: Strictly Causal Rolling Lags</span>
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
 
-const SAMPLE_ROLES = [
+const OCCUPATION_NETWORKS = [
   {
-    title: "AI Systems & Embedded ML Engineer",
-    snippet:
-      "Design Python machine learning pipelines, deploy edge telemetry firmware on ESP32 microcontrollers, calibrate statistical classifiers, and build React monitoring interfaces.",
-    skills: [
-      { name: "Machine Learning & Statistical Modelling", prob: 0.91 },
-      { name: "Python & Scientific Computing", prob: 0.89 },
-      { name: "Embedded Systems & IoT Telemetry", prob: 0.84 },
-      { name: "Data Engineering & Feature Pipelines", prob: 0.76 },
-      { name: "Frontend Systems & Visualization", prob: 0.64 },
-      { name: "Enterprise ERP Administration", prob: 0.14 },
+    id: "ai-engineer",
+    role: "AI ENGINEER",
+    demand: "HIGH",
+    confidence: "88%",
+    nodes: [
+      { label: "Python", angle: -90, prob: "0.94" },
+      { label: "ML", angle: -18, prob: "0.91" },
+      { label: "NLP", angle: 54, prob: "0.86" },
+      { label: "Cloud", angle: 126, prob: "0.78" },
+      { label: "Data", angle: 198, prob: "0.84" },
     ],
-    ngrams: ["machine learning", "python", "esp32", "calibrat", "telemetr", "pipeline"],
-    demandTier: "HIGH GROWTH DEMAND (p = 0.88)",
   },
   {
-    title: "Supply Chain Forecasting & Operations Analyst",
-    snippet:
-      "Develop multi-horizon inventory demand forecasting models, optimize safety stock buffers, evaluate walk-forward validation metrics, and automate SQL/Python procurement reports.",
-    skills: [
-      { name: "Time-Series & Demand Forecasting", prob: 0.93 },
-      { name: "Supply Chain & Inventory Optimization", prob: 0.87 },
-      { name: "Python & Scientific Computing", prob: 0.79 },
-      { name: "SQL & Relational Analytics", prob: 0.74 },
-      { name: "Executive Decision Reporting", prob: 0.58 },
-      { name: "Embedded Firmware C++", prob: 0.08 },
+    id: "ml-forecasting",
+    role: "ML FORECASTING SCIENTIST",
+    demand: "HIGH",
+    confidence: "84%",
+    nodes: [
+      { label: "Time-Series", angle: -90, prob: "0.93" },
+      { label: "LightGBM", angle: -18, prob: "0.89" },
+      { label: "Python", angle: 54, prob: "0.90" },
+      { label: "Validation", angle: 126, prob: "0.85" },
+      { label: "SQL / Data", angle: 198, prob: "0.79" },
     ],
-    ngrams: ["multi-horizon", "demand forecast", "safety stock", "walk-forward", "inventory"],
-    demandTier: "HIGH GROWTH DEMAND (p = 0.84)",
   },
-];
+  {
+    id: "iot-architect",
+    role: "EMBEDDED AI & IOT ENGINEER",
+    demand: "HIGH",
+    confidence: "82%",
+    nodes: [
+      { label: "ESP32", angle: -90, prob: "0.92" },
+      { label: "ESP-NOW", angle: -18, prob: "0.87" },
+      { label: "Sensors", angle: 54, prob: "0.89" },
+      { label: "Edge AI", angle: 126, prob: "0.81" },
+      { label: "Cloud Sync", angle: 198, prob: "0.76" },
+    ],
+  },
+] as const;
 
 export function SkillsDemandInteractiveLab() {
+  const prefersReducedMotion = useReducedMotion();
   const [roleIdx, setRoleIdx] = useState<number>(0);
-  const [threshold, setThreshold] = useState<number>(0.42);
+  const [showMetrics, setShowMetrics] = useState<boolean>(false);
 
-  const activeRole = SAMPLE_ROLES[roleIdx];
+  const activeOccupation = OCCUPATION_NETWORKS[roleIdx];
 
   return (
-    <div className="surface-card hairline-border p-5 sm:p-8 space-y-6">
+    <div className="glass-workspace p-6 sm:p-8 space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 hairline-b">
         <div className="flex items-center gap-2.5">
           <Cpu className="h-5 w-5 text-[var(--accent-amber)]" aria-hidden="true" />
           <h3 className="font-display text-lg sm:text-xl font-bold text-[var(--text-primary)]">
-            Interactive Dual TF-IDF &amp; Platt-Calibrated Threshold Inspector
+            Occupational AI — Connected Skill Constellation &amp; Demand Indicator
           </h3>
         </div>
-        <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
-          C = 2.2 · OPTIMAL τ = 0.42 · 3× GOLD HYBRID
-        </span>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Select Occupation">
+          {OCCUPATION_NETWORKS.map((occ, idx) => (
+            <button
+              key={occ.id}
+              type="button"
+              onClick={() => setRoleIdx(idx)}
+              className={`px-3 py-1.5 rounded-full font-mono text-xs transition-colors cursor-pointer ${
+                roleIdx === idx
+                  ? "bg-[var(--accent-amber)] text-slate-950 font-semibold"
+                  : "hairline-border text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              {occ.role}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 space-y-5 p-4 hairline-border bg-[var(--bg-canvas)]">
-          <div>
-            <div className="font-mono text-xs uppercase tracking-[0.06em] text-[var(--text-muted)] mb-2">
-              1. Select Occupational Text Profile
-            </div>
-            <div className="space-y-2">
-              {SAMPLE_ROLES.map((r, i) => (
-                <button
-                  key={r.title}
-                  type="button"
-                  onClick={() => setRoleIdx(i)}
-                  className={`w-full text-left p-3 hairline-border cursor-pointer transition-colors ${
-                    roleIdx === i
-                      ? "bg-[var(--bg-elevated)] border-[var(--accent-amber)] text-[var(--text-primary)]"
-                      : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
-                  }`}
-                >
-                  <div className="font-display text-sm font-semibold">{r.title}</div>
-                  <div className="mt-1 text-xs text-[var(--text-muted)] line-clamp-2">{r.snippet}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-2 hairline-t">
-            <div className="flex justify-between font-mono text-xs mb-1.5 tabular-nums">
-              <label htmlFor="sim-tau" className="text-[var(--text-secondary)]">
-                Decision Threshold (τ)
-              </label>
-              <span className="font-bold text-[var(--accent-amber)]">
-                τ = {threshold.toFixed(2)} {threshold === 0.42 ? "(Validated Optimum)" : ""}
-              </span>
-            </div>
-            <input
-              id="sim-tau"
-              type="range"
-              min={0.25}
-              max={0.75}
-              step={0.01}
-              value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              className="w-full accent-[var(--accent-amber)] cursor-pointer"
-            />
-            <div className="mt-2 flex justify-between">
-              <button
-                type="button"
-                onClick={() => setThreshold(0.42)}
-                className="px-2.5 py-1 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--accent-amber)] cursor-pointer"
-              >
-                Reset to Tuned τ = 0.42
-              </button>
-              <button
-                type="button"
-                onClick={() => setThreshold(0.5)}
-                className="px-2.5 py-1 font-mono text-[11px] hairline-border bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-pointer"
-              >
-                Compare Naive τ = 0.50
-              </button>
-            </div>
-          </div>
-
-          <div className="pt-2 hairline-t">
-            <div className="font-mono text-[11px] uppercase text-[var(--text-muted)] mb-2">
-              Activated Word (1–3g) &amp; Char (3–5g) Features
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {activeRole.ngrams.map((g) => (
-                <span
-                  key={g}
-                  className="px-2 py-0.5 font-mono text-xs bg-[var(--bg-surface)] hairline-border text-[var(--text-secondary)]"
-                >
-                  {g}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-7 p-4 sm:p-5 hairline-border bg-[var(--bg-canvas)] space-y-4 tabular-nums">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 hairline-b">
-            <span className="font-mono text-xs uppercase text-[var(--text-secondary)]">
-              Platt-Calibrated Multi-Label Skill Posteriors
-            </span>
-            <span className="px-2.5 py-0.5 font-mono text-xs bg-[var(--accent-secondary-soft)] text-[var(--accent-secondary)]">
-              {activeRole.demandTier}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {activeRole.skills.map((sk) => {
-              const active = sk.prob >= threshold;
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Connected Skill Network SVG */}
+        <div className="lg:col-span-7 glass-panel p-6 flex items-center justify-center min-h-[300px]">
+          <svg
+            viewBox="0 0 360 280"
+            className="w-full max-w-[380px] h-auto overflow-visible"
+            role="img"
+            aria-label={`Skill constellation for ${activeOccupation.role}`}
+          >
+            {activeOccupation.nodes.map((node) => {
+              const rad = (node.angle * Math.PI) / 180;
+              const nx = 180 + Math.cos(rad) * 105;
+              const ny = 140 + Math.sin(rad) * 88;
               return (
-                <div key={sk.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className={active ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]"}>
-                      {active ? "✓ " : "· "}
-                      {sk.name}
-                    </span>
-                    <span className={active ? "text-[var(--accent-amber)] font-semibold" : "text-[var(--text-muted)]"}>
-                      p = {sk.prob.toFixed(2)} {active ? "≥ τ" : "< τ"}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-[var(--bg-surface)] relative">
-                    <div
-                      className={`h-full transition-all duration-150 ${
-                        active ? "bg-[var(--accent-amber)]" : "bg-[var(--text-muted)] opacity-40"
-                      }`}
-                      style={{ width: `${sk.prob * 100}%` }}
-                    />
-                  </div>
-                </div>
+                <g key={node.label}>
+                  <line
+                    x1={180}
+                    y1={140}
+                    x2={nx}
+                    y2={ny}
+                    stroke="var(--accent-amber)"
+                    strokeWidth="1.4"
+                    strokeOpacity="0.65"
+                  />
+                  <circle
+                    cx={nx}
+                    cy={ny}
+                    r={22}
+                    fill="var(--bg-canvas)"
+                    stroke="var(--accent-amber)"
+                    strokeWidth="1.5"
+                  />
+                  <text
+                    x={nx}
+                    y={ny - 2}
+                    textAnchor="middle"
+                    fill="var(--text-primary)"
+                    fontSize="9.5"
+                    fontFamily="var(--font-mono)"
+                  >
+                    {node.label}
+                  </text>
+                  <text
+                    x={nx}
+                    y={ny + 10}
+                    textAnchor="middle"
+                    fill="var(--accent-amber)"
+                    fontSize="8.5"
+                    fontFamily="var(--font-mono)"
+                  >
+                    {node.prob}
+                  </text>
+                </g>
               );
             })}
-          </div>
 
-          <div className="pt-3 hairline-t grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="p-2.5 hairline-border bg-[var(--bg-surface)]">
-              <div className="font-mono text-[10px] text-[var(--text-muted)]">Protocol B Macro F1</div>
-              <div className="font-display text-base font-bold text-[var(--text-primary)]">0.7149</div>
-            </div>
-            <div className="p-2.5 hairline-border bg-[var(--bg-surface)]">
-              <div className="font-mono text-[10px] text-[var(--text-muted)]">Protocol C Macro F1</div>
-              <div className="font-display text-base font-bold text-[var(--text-primary)]">0.6196</div>
-            </div>
-            <div className="p-2.5 hairline-border bg-[var(--bg-surface)]">
-              <div className="font-mono text-[10px] text-[var(--text-muted)]">Demand ROC AUC</div>
-              <div className="font-display text-base font-bold text-[var(--accent-secondary)]">0.8379</div>
-            </div>
-            <div className="p-2.5 hairline-border bg-[var(--bg-surface)]">
-              <div className="font-mono text-[10px] text-[var(--text-muted)]">Brier Score</div>
-              <div className="font-display text-base font-bold text-[var(--text-primary)]">0.1668</div>
-            </div>
-          </div>
+            <circle
+              cx={180}
+              cy={140}
+              r={32}
+              fill="var(--bg-canvas)"
+              stroke="var(--accent-amber)"
+              strokeWidth="2.2"
+            />
+            <text
+              x={180}
+              y={143}
+              textAnchor="middle"
+              fill="var(--text-primary)"
+              fontSize="9"
+              fontWeight="bold"
+              fontFamily="var(--font-display)"
+            >
+              CORE ROLE
+            </text>
+          </svg>
+        </div>
+
+        {/* Floating Demand & Confidence Window */}
+        <div className="lg:col-span-5">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeOccupation.id}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="glass-panel-active p-6 space-y-5 tabular-nums"
+            >
+              <h4 className="font-display text-xl font-bold text-[var(--text-primary)]">
+                {activeOccupation.role}
+              </h4>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)]">
+                  <div className="font-mono text-[10px] uppercase text-[var(--text-muted)]">
+                    Demand
+                  </div>
+                  <div className="mt-1 font-display text-2xl font-bold text-[var(--accent-secondary)]">
+                    {activeOccupation.demand}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl hairline-border bg-[var(--bg-canvas)]">
+                  <div className="font-mono text-[10px] uppercase text-[var(--text-muted)]">
+                    Confidence
+                  </div>
+                  <div className="mt-1 font-display text-2xl font-bold text-[var(--accent-amber)]">
+                    {activeOccupation.confidence}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowMetrics((prev) => !prev)}
+                aria-expanded={showMetrics}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent-amber-soft)] text-[var(--accent-amber)] font-mono text-xs uppercase tracking-[0.06em] cursor-pointer"
+              >
+                <span>
+                  {showMetrics
+                    ? "Hide Protocol B / C Benchmarks"
+                    : "Inspect Protocol B / C Benchmarks"}
+                </span>
+                <ChevronRight
+                  className={`h-3.5 w-3.5 transition-transform ${showMetrics ? "rotate-90" : ""}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {showMetrics && (
+                <div className="pt-3 hairline-t space-y-2 font-mono text-xs text-[var(--text-secondary)]">
+                  <div>Model: Word 1–3g + Char 3–5g TF-IDF · OvR LogReg (C=2.2, τ=0.42, Platt)</div>
+                  <div>Protocol B: Skills Macro F1 0.7149 · Micro F1 0.6824 · Demand F1 0.7644</div>
+                  <div>Calibration: ROC AUC 0.8379 · Brier 0.1668</div>
+                  <div>Protocol C: Skills Macro F1 0.6196 · Micro F1 0.6712</div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

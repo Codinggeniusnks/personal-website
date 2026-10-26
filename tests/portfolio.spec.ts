@@ -11,23 +11,28 @@ const VIEWPORTS = [
   { width: 360, height: 800, name: "360x800-compact-phone" },
 ];
 
-test.describe("Ng Kai Sheng Portfolio — Multi-Viewport & Functional QA", () => {
-  test("Home page renders with zero console errors, interactive telemetry bench, and zero horizontal overflow across all 8 mandatory viewports", async ({
+test.describe("Kai Sheng Spatial 3D AI Portfolio — Multi-Viewport & Progressive Disclosure QA", () => {
+  test("Spatial Hero, 3D AI Core, and Project Constellation operate with zero errors and zero horizontal overflow across all 8 viewports", async ({
     page,
   }) => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
 
     await page.goto("/");
-    await expect(page.locator("h1")).toContainText("Engineering AI systems");
-    await expect(page.getByText("Ng Kai Sheng").first()).toBeVisible();
+    await expect(page.locator("h1")).toContainText("KAI SHENG");
+    await expect(
+      page.getByText("I build intelligent systems that turn data into predictions")
+    ).toBeVisible();
 
-    // Test interactive telemetry channel switching
-    await page.getByRole("tab", { name: /FoodResilience/i }).click();
-    await expect(page.getByText(/Walk-Forward Horizon Explorer/i)).toBeVisible();
+    // Test Project Constellation node selection & progressive disclosure
+    await page.getByRole("tab", { name: /FOODRESILIENCE/i }).click();
+    await expect(
+      page.locator("#constellation-preview-window").getByText("FOODRESILIENCE")
+    ).toBeVisible();
 
-    await page.getByRole("tab", { name: /Skills & Demand/i }).click();
-    await expect(page.locator("#panel-skills").getByText("0.7149")).toBeVisible();
+    await page.getByRole("tab", { name: /OCCUPATIONAL AI/i }).click();
+    await page.getByRole("button", { name: /Reveal Key Evidence/i }).click();
+    await expect(page.getByText(/0\.7149/)).toBeVisible();
 
     // Check all 8 viewports for zero horizontal overflow
     for (const vp of VIEWPORTS) {
@@ -41,30 +46,38 @@ test.describe("Ng Kai Sheng Portfolio — Multi-Viewport & Functional QA", () =>
     expect(errors).toEqual([]);
   });
 
-  test("All primary routes and 3 case study simulators render and operate properly", async ({
+  test("All 3 spatial case studies and progressive disclosure modules work seamlessly", async ({
     page,
   }) => {
     // 1. Work Index
     await page.goto("/work");
     await expect(page.locator("h1")).toContainText("Engineering Case Studies");
 
-    // 2. CardiOxy Pro Case Study + Simulator
+    // 2. CardiOxy Pro 3D/Spatial Case Study
     await page.goto("/work/cardioxy-pro");
     await expect(page.locator("h1")).toContainText("CardiOxy Pro");
-    await expect(page.getByText(/ISIC-WOU24/i).first()).toBeVisible();
-    await page.getByRole("button", { name: /Offline \(ESP-NOW\)/i }).click();
-    await expect(page.getByText(/ESP-NOW Peer Bus/i)).toBeVisible();
+    await page.getByRole("button", { name: /Explore Model Logic/i }).click();
+    await expect(page.getByText(/sliding telemetry window/i)).toBeVisible();
 
-    // 3. FoodResilience Case Study + Simulator
+    // Progressive disclosure technical tabs
+    await page.getByRole("tab", { name: /Validation & Metrics/i }).click();
+    await expect(page.getByText(/ISIC-WOU24/i).first()).toBeVisible();
+
+    // 3. FoodResilience Spatial Flow
     await page.goto("/work/foodresilience");
     await expect(page.locator("h1")).toContainText("FoodResilience");
     await page.getByRole("button", { name: "+30d" }).click();
-    await expect(page.getByText(/Projected \+30d Demand/i)).toBeVisible();
+    await expect(page.getByText(/5,040 units/i)).toBeVisible();
 
-    // 4. Occupational Skills & Demand Predictor Case Study + Simulator
+    // 4. Occupational Skills & Demand Spatial Constellation
     await page.goto("/work/occupational-skills-demand");
-    await expect(page.locator("h1")).toContainText("Occupational Skills & Demand Predictor");
-    await expect(page.getByText("0.8379").first()).toBeVisible();
+    await expect(page.locator("h1")).toContainText(
+      "Occupational Skills & Demand Predictor"
+    );
+    await page
+      .getByRole("button", { name: /Inspect Protocol B \/ C Benchmarks/i })
+      .click();
+    await expect(page.getByText(/0\.8379/).first()).toBeVisible();
 
     // 5. About, Achievements, Contact, Resume
     for (const route of ["/about", "/achievements", "/contact", "/resume"]) {
@@ -74,25 +87,18 @@ test.describe("Ng Kai Sheng Portfolio — Multi-Viewport & Functional QA", () =>
     }
   });
 
-  test("Mobile navigation drawer opens, closes on Escape, and theme toggle switches between dark and light mode", async ({
+  test("Floating glass navigation drawer and theme toggle work across mobile and desktop", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
 
-    // Toggle theme
-    const htmlBefore = await page.locator("html").getAttribute("data-theme");
-    expect(htmlBefore).toBe("dark");
     await page.getByRole("button", { name: /Switch to light mode/i }).click();
-    const htmlAfter = await page.locator("html").getAttribute("data-theme");
-    expect(htmlAfter).toBe("light");
+    expect(await page.locator("html").getAttribute("data-theme")).toBe("light");
 
-    // Open mobile menu
-    const menuBtn = page.getByRole("button", { name: /Open navigation menu/i });
-    await menuBtn.click();
+    await page.getByRole("button", { name: /Open navigation menu/i }).click();
     await expect(page.locator("#mobile-nav-drawer")).toBeVisible();
 
-    // Close with Escape
     await page.keyboard.press("Escape");
     await expect(page.locator("#mobile-nav-drawer")).toBeHidden();
   });

@@ -2,46 +2,48 @@
 
 :root,
 [data-theme="dark"] {
-  --bg-canvas: #090C10;
-  --bg-surface: #0F141C;
-  --bg-elevated: #151C28;
-  --bg-glass: rgba(15, 20, 28, 0.84);
-  --text-primary: #F2F4F8;
-  --text-secondary: #A6B0C3;
-  --text-muted: #6C778C;
-  --accent-primary: #FF5A26;
-  --accent-primary-hover: #FF7447;
-  --accent-primary-soft: rgba(255, 90, 38, 0.13);
-  --accent-secondary: #10B981;
-  --accent-secondary-soft: rgba(16, 185, 129, 0.13);
+  --bg-canvas: #07090E;
+  --bg-surface: rgba(14, 18, 26, 0.64);
+  --bg-elevated: rgba(22, 28, 40, 0.78);
+  --bg-glass: rgba(12, 16, 24, 0.58);
+  --bg-glass-active: rgba(18, 24, 36, 0.82);
+  --text-primary: #F5F4F0;
+  --text-secondary: #A9B2C3;
+  --text-muted: #697386;
+  --accent-primary: #E86238;
+  --accent-primary-hover: #F4764E;
+  --accent-primary-soft: rgba(232, 98, 56, 0.14);
+  --accent-secondary: #2DD4BF;
+  --accent-secondary-soft: rgba(45, 212, 191, 0.12);
   --accent-amber: #F59E0B;
-  --accent-amber-soft: rgba(245, 158, 11, 0.13);
-  --border-hairline: rgba(242, 244, 248, 0.09);
-  --border-strong: rgba(242, 244, 248, 0.20);
-  --grid-line: rgba(242, 244, 248, 0.035);
-  --shadow-panel: 0 20px 50px -24px rgba(0, 0, 0, 0.72);
+  --accent-amber-soft: rgba(245, 158, 11, 0.12);
+  --border-hairline: rgba(245, 244, 240, 0.08);
+  --border-strong: rgba(245, 244, 240, 0.22);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+  --shadow-panel: 0 24px 64px -20px rgba(0, 0, 0, 0.72);
   color-scheme: dark;
 }
 
 [data-theme="light"] {
-  --bg-canvas: #F7F6F2;
-  --bg-surface: #EFECE6;
-  --bg-elevated: #FFFFFF;
-  --bg-glass: rgba(247, 246, 242, 0.88);
-  --text-primary: #0F141C;
+  --bg-canvas: #F5F4F0;
+  --bg-surface: rgba(255, 255, 255, 0.72);
+  --bg-elevated: rgba(255, 255, 255, 0.90);
+  --bg-glass: rgba(255, 255, 255, 0.68);
+  --bg-glass-active: rgba(255, 255, 255, 0.92);
+  --text-primary: #0D1117;
   --text-secondary: #3E4859;
-  --text-muted: #647084;
-  --accent-primary: #D93800;
-  --accent-primary-hover: #B82E00;
-  --accent-primary-soft: rgba(217, 56, 0, 0.10);
-  --accent-secondary: #047857;
-  --accent-secondary-soft: rgba(4, 120, 87, 0.10);
+  --text-muted: #667185;
+  --accent-primary: #D4481D;
+  --accent-primary-hover: #B83A14;
+  --accent-primary-soft: rgba(212, 72, 29, 0.10);
+  --accent-secondary: #0F766E;
+  --accent-secondary-soft: rgba(15, 118, 110, 0.10);
   --accent-amber: #B45309;
   --accent-amber-soft: rgba(180, 83, 9, 0.10);
-  --border-hairline: rgba(15, 20, 28, 0.12);
-  --border-strong: rgba(15, 20, 28, 0.26);
-  --grid-line: rgba(15, 20, 28, 0.045);
-  --shadow-panel: 0 18px 42px -22px rgba(15, 20, 28, 0.12);
+  --border-hairline: rgba(13, 17, 23, 0.10);
+  --border-strong: rgba(13, 17, 23, 0.24);
+  --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
+  --shadow-panel: 0 20px 48px -18px rgba(13, 17, 23, 0.10);
   color-scheme: light;
 }
 
@@ -76,18 +78,17 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--bg-canvas);
-  border-left: 1px solid var(--border-hairline);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
-  border-radius: 2px;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -120,15 +121,36 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+/* Layer 2: Floating Optical Glass Window */
+.glass-panel,
 .surface-card {
-  background-color: var(--bg-surface);
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
   border: 1px solid var(--border-hairline);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--glass-highlight), var(--shadow-panel);
+  border-radius: 16px;
 }
 
+/* Layer 3: Active Focused Project Window */
+.glass-panel-active,
 .surface-elevated {
-  background-color: var(--bg-elevated);
+  background-color: var(--bg-glass-active);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--glass-highlight), var(--shadow-panel);
+  border-radius: 18px;
+}
+
+/* Layer 4: Expanded Case-Study Workspace */
+.glass-workspace {
+  background-color: var(--bg-glass-active);
+  backdrop-filter: blur(32px) saturate(150%);
+  -webkit-backdrop-filter: blur(32px) saturate(150%);
   border: 1px solid var(--border-hairline);
+  box-shadow: var(--glass-highlight), var(--shadow-panel);
+  border-radius: 22px;
 }
 
 .hairline-t {
@@ -166,17 +188,21 @@ a {
   body {
     background: #FFFFFF !important;
     color: #000000 !important;
-    background-image: none !important;
   }
 
   .no-print {
     display: none !important;
   }
 
+  .glass-panel,
+  .glass-panel-active,
+  .glass-workspace,
   .surface-card,
   .surface-elevated {
     background: #FFFFFF !important;
+    backdrop-filter: none !important;
     border-color: #D1D5DB !important;
     box-shadow: none !important;
+    border-radius: 4px !important;
   }
 }
