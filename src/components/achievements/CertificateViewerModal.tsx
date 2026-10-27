@@ -141,6 +141,11 @@ export function CertificateViewerModal({
                 Presented by <strong className="text-[var(--text-primary)] font-medium">{currentCert?.issuer || achievement.competition}</strong> in recognition of project excellence on <strong className="text-[var(--accent-primary)] font-medium">{achievement.project}</strong>.
               </p>
 
+              {currentCert?.imageUrl && (
+                <a href={currentCert.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[var(--accent-primary)] underline text-sm">
+                  Open original certificate <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              )}
               {achievement.role === "Project Supervisor" && (
                 <div className="p-3 rounded-xl bg-[var(--bg-glass)] hairline-border text-xs text-[var(--text-secondary)] text-left flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[var(--accent-primary)] shrink-0 mt-0.5" aria-hidden="true" />

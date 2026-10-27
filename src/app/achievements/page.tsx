@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Award, Filter, Globe, Settings, ShieldCheck, UserCheck } from "lucide-react";
-import { initialAchievements, type Achievement } from "@/data/achievements";
+import { type Achievement } from "@/data/achievements";
+import { usePublicAchievements } from "@/lib/supabase/use-public-achievements";
 import { SpatialAiCanvas } from "@/components/spatial/SpatialAiCanvas";
 import { AchievementCard } from "@/components/achievements/AchievementCard";
 import { CertificateViewerModal } from "@/components/achievements/CertificateViewerModal";
@@ -15,7 +16,8 @@ export default function AchievementsPage() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeModalAchievement, setActiveModalAchievement] = useState<Achievement | null>(null);
 
-  const filteredAchievements = initialAchievements.filter((a) => {
+  const achievements = usePublicAchievements();
+  const filteredAchievements = achievements.filter((a) => {
     if (!a.visible) return false;
     if (filter === "featured") return a.featured;
     if (filter === "supervisory") return a.role.includes("Supervisor");

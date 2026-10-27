@@ -5,6 +5,7 @@ export interface CertificateItem {
   date?: string;
   badge?: string;
   imageUrl?: string;
+  storagePath?: string;
   verificationUrl?: string;
 }
 
