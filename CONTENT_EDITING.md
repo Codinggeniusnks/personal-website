@@ -22,7 +22,7 @@ src/
 │   ├── capabilities.ts   # 8 core engineering capabilities
 │   └── skills.ts         # Grouped technical stack (AI/ML, NLP, IoT, Web, Data)
 └── lib/
-    └── supabase.ts       # Live Supabase connection & fallback synchronization
+    └── supabase/        # Separate browser and server clients
 ```
 
 ---
@@ -31,14 +31,14 @@ src/
 
 ### A. Via the `/admin` Portal (Zero Code Required)
 1. Open the live site and navigate to `http://localhost:3000/admin` (or `https://your-domain/admin`).
-2. Enter your Passcode / PIN (default: `1234` or set via `NEXT_PUBLIC_ADMIN_PIN` in `.env.local`).
+2. Sign in through `/login` with the Supabase Auth account registered as the portfolio owner.
 3. You can:
    - **Reorder**: Click the `↑` or `↓` buttons to change the display sequence.
    - **Feature / Unfeature**: Click the ⭐ star icon to toggle whether an achievement appears in the 5 featured slots on the homepage.
    - **Show / Hide**: Click the 👁️ eye icon to publish or hide an achievement.
    - **Edit**: Click `Edit` to update the title, competition, project, role, recognitions, description, verification link, and certificates.
    - **Add**: Click `+ Add Achievement` to insert a new competition record.
-   - **Save**: Click `Save Changes`. If Supabase credentials are configured in environment variables, it saves directly to your live database; otherwise, it persists safely in your browser's local cache.
+   - **Save**: Click `Save Changes` to persist changes in Supabase. Check the displayed result before leaving the page.
 
 ### B. In Code (`src/data/achievements.ts`)
 Each achievement adheres to this TypeScript schema:
@@ -64,7 +64,8 @@ export interface Achievement {
     issuer: string;
     date?: string;
     badge?: string;
-    imageUrl?: string;      // URL or path inside /public/certificates/
+    imageUrl?: string;      // Public URL of uploaded certificate
+    storagePath?: string;   // Object path in the certificates bucket
   }[];
 }
 ```
@@ -78,7 +79,7 @@ export interface Achievement {
 ## 3. Managing Flagship Projects (`src/data/projects.ts`)
 
 To edit one of the 3 flagship systems or add a new one:
-1. Open [`src/data/projects.ts`](file:///C:/Users/LENOVO/.gemini/antigravity/scratch/kai-sheng-portfolio/src/data/projects.ts).
+1. Open `src/data/projects.ts`.
 2. Edit or append an entry in `projectsData`.
 3. Every project automatically populates:
    - Homepage Featured Projects 3D node selector & readable cards
@@ -100,19 +101,12 @@ To edit one of the 3 flagship systems or add a new one:
 
 ## 4. Replacing Images & Certificate Assets
 
-1. Place image or PDF files inside `public/`:
-   - Certificates: `public/certificates/<filename>.webp`
-   - Project diagrams: `public/projects/<filename>.png`
-2. Reference the path starting with `/`:
-   ```typescript
-   imageUrl: "/certificates/wsdg-2024-diamond.webp"
-   ```
+Upload, replace, or delete live certificate files through `/admin`. The files are stored in the Supabase `certificates` bucket and remain grouped in the achievement's `certificates` array. Save a new achievement before attaching files. Static project diagrams can still be placed in `public/projects/` and referenced by their `/projects/` path.
 
 ---
-
 ## 5. Updating Social Links & Contact Details (`src/data/profile.ts`)
 
-Open [`src/data/profile.ts`](file:///C:/Users/LENOVO/.gemini/antigravity/scratch/kai-sheng-portfolio/src/data/profile.ts) to update:
+Open `src/data/profile.ts` to update:
 - `email`: e.g. `e2100808@siswa.um.edu.my`
 - `linkedInUrl`: e.g. `https://www.linkedin.com/in/ng-kai-sheng`
 - `githubUrl`: e.g. `https://github.com/kaisheng`
@@ -121,44 +115,12 @@ Open [`src/data/profile.ts`](file:///C:/Users/LENOVO/.gemini/antigravity/scratch
 
 ---
 
-## 6. Live Supabase Setup (Replit / Production)
+## 6. Supabase and Replit deployment
 
-To enable live remote database editing via `/admin` without redeploying code:
-1. Create a Supabase project at [supabase.com](https://supabase.com).
-2. Run this SQL in your Supabase SQL Editor:
-   ```sql
-   create table achievements (
-     id text primary key,
-     year text not null,
-     title text not null,
-     competition text not null,
-     project text not null,
-     role text not null,
-     recognitions jsonb not null default '[]'::jsonb,
-     category text not null,
-     description text,
-     featured boolean default true,
-     visible boolean default true,
-     display_order int default 1,
-     certificates jsonb default '[]'::jsonb,
-     verification_url text,
-     linkedin_url text,
-     created_at timestamp with time zone default timezone('utc'::text, now())
-   );
-
-   -- Allow public read access
-   alter table achievements enable row level security;
-   create policy "Public achievements are viewable by everyone"
-     on achievements for select using (visible = true);
-
-   -- Allow admin service / authenticated updates
-   create policy "Admin can insert and update achievements"
-     on achievements for all using (true);
-   ```
-3. Add these variables to your Replit Secrets or `.env.local`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   NEXT_PUBLIC_ADMIN_PIN=your-secret-pin
-   ```
-4. When configured, edits made in `/admin` will automatically update Supabase and reflect on the public website within 60 seconds (via Next.js ISR).
+1. In the intended Supabase project, run `supabase/migrations/20261026000000_portfolio.sql` once through the Supabase SQL Editor or migration tooling. Keep the same migration in Git. It creates the achievements table, owner lookup, RLS policies, and certificate bucket. Never apply it to another project.
+2. Create Kai Sheng's Supabase Auth user using the Supabase dashboard. Copy that user's UUID from Authentication → Users. As a database administrator, run `insert into public.portfolio_owners (user_id) values ('THE-OWNER-UUID');` once. No other authenticated user should be inserted into this table.
+3. The migration seeds the six existing achievements from `src/data/achievements.ts`. Confirm their roles, visibility, certificate links, and `display_order` values after applying it. A configured deployment reads the database; the in-code records are only a local fallback when Supabase is not configured.
+4. In Replit Secrets, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for this project. Use the publishable key, never a service-role or secret key. The names are in `.env.example`; values belong only in Replit Secrets or an ignored local environment file. Set these before the production build, since Next.js embeds public variables at build time.
+5. Import this GitHub repository into Replit and choose an Autoscale or Reserved VM deployment (not Static). The committed `.replit` config installs with `npm ci`, builds with `npm run build`, starts Next.js on `0.0.0.0:3000`, and exposes only that port. Keep the build and run commands aligned with the Replit Publishing settings. The app requires a persistent Node.js server so `/admin` can perform server-side authentication. Enable an HTTPS domain for the published site. See [Replit port guidance](https://docs.replit.com/references/project-setup/ports).
+6. Before publishing, run `npm run typecheck`, `npm run build`, and `npx playwright test`. Check an anonymous `/admin` request redirects to `/login`; check a signed-in non-owner cannot write; check the owner can create, update, delete, reorder, and manage certificate files. Check the Supabase security advisors and compare the remote schema and policies with the committed migration.
+7. Visit the public homepage and `/achievements` after seeding. Confirm only visible records appear, featured records follow `display_order`, multiple certificates remain grouped, and supervisor awards identify Kai Sheng as Project Supervisor.

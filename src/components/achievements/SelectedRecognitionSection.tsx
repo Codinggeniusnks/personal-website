@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { ArrowUpRight, Award, Globe, ShieldCheck } from "lucide-react";
-import { getFeaturedAchievements, type Achievement } from "@/data/achievements";
+import { type Achievement } from "@/data/achievements";
+import { usePublicAchievements } from "@/lib/supabase/use-public-achievements";
 import { AchievementCard } from "./AchievementCard";
 import { CertificateViewerModal } from "./CertificateViewerModal";
 import { MagneticButton } from "@/components/spatial/InteractivePrimitives";
@@ -16,7 +17,8 @@ export function SelectedRecognitionSection({
 }: SelectedRecognitionSectionProps) {
   const [activeModalAchievement, setActiveModalAchievement] = useState<Achievement | null>(null);
 
-  const featured = achievements ? achievements.filter((a) => a.visible && a.featured) : getFeaturedAchievements();
+  const liveAchievements = usePublicAchievements();
+  const featured = (achievements ?? liveAchievements).filter((a) => a.visible && a.featured).sort((a, b) => a.display_order - b.display_order);
 
   return (
     <section id="recognition" className="py-16 lg:py-24 space-y-12 scroll-mt-16">

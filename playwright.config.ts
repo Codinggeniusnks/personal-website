@@ -11,7 +11,7 @@ export default defineConfig({
     trace: "off",
   },
   webServer: {
-    command: "npm.cmd run start -- -p 3123",
+    command: "npm run start -- -p 3123",
     url: "http://localhost:3123",
     reuseExistingServer: true,
     timeout: 60000,

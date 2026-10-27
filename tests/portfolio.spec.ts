@@ -109,13 +109,10 @@ test.describe("Kai Sheng Master AI/ML Portfolio — Multi-Viewport & Technical Q
       await expect(page.locator("h1")).toContainText("PRINTABLE CV");
     }
 
-    // 7. Verify Admin portal unlock (/admin)
+    // 7. Anonymous requests never receive the management console.
     await page.goto("/admin");
-    await expect(page.locator("h1")).toContainText("Admin Authentication");
-    await page.locator("#admin-pin").fill("1234");
-    await page.getByRole("button", { name: /Unlock Admin Portal/i }).click();
-    await expect(page.locator("h1")).toContainText("Content Management Console");
-    await expect(page.getByRole("button", { name: /\+ Add Achievement/i })).toBeVisible();
+    await expect(page.getByText("Content Management Console")).toHaveCount(0);
+    await expect(page.locator("#admin-pin")).toHaveCount(0);
   });
 
   test("Floating glass navigation drawer and theme toggle work across mobile and desktop", async ({
