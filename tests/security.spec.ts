@@ -13,3 +13,18 @@ test("anonymous /admin request cannot receive the management console", async ({ 
     expect(body).toContain("Supabase is not configured");
   }
 });
+
+test("public pages have no browser console errors", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(`${page.url()}: ${message.text()}`);
+  });
+  page.on("pageerror", (error) => errors.push(`${page.url()}: ${error.message}`));
+
+  for (const path of ["/", "/achievements", "/work", "/about", "/contact"]) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+  }
+
+  expect(errors).toEqual([]);
+});
