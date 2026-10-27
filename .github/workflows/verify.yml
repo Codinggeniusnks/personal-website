@@ -9,6 +9,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://btarlvisxvggduuewjyw.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_gCXILzP1DY8RTpnGevf3AA_rC3NbCid
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
